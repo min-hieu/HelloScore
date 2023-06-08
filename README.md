@@ -16,6 +16,8 @@ More examples on how to use this can be found in `SGMinTheWild.py`.
 - [Paper] [Classiffer-free Diffusion Guidance](https://arxiv.org/abs/2207.12598)
 - [Paper] [SALAD](http://salad3d.github.io/)
 - [Paper] [SyncDiffusion](http://syncdiffusion.github.io/)
+- [Paper] [Trans-Dimensional Generative Modeling via Jump Diffusion Models](https://arxiv.org/abs/2305.16261)
+- [Paper] [Riemannian Score-base Generative Modelling](https://arxiv.org/abs/2202.02763)
 - [Paper] [Likelihood Training of Schrödinger Bridge](https://arxiv.org/abs/2110.11291)
 - [Paper] [Heat Method](https://www.cs.cmu.edu/~kmcrane/Projects/HeatMethod/)
 - [Paper] [Vector Heat Method](https://arxiv.org/pdf/1805.09170.pdf)
