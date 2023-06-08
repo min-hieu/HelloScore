@@ -1,4 +1,4 @@
-# The HOT tutorial "Heat-based generative and geOmeTric Modeling"  (SGM & Heat Method)
+# Introduction to Diffusion (SGM and Heat Method)
 
 ## Score-based Generative Model (SGM)
 Get started with the basic of SGM in the `HelloScore.ipynb`. When you're done, feel free to use the 
