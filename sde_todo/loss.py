@@ -3,18 +3,24 @@ import torch.nn as nn
 class DSMLoss():
 
     def __init__(self, alpha: float, diff_weight: bool):
-        self.alpha = alpha
-        self.diff_weight = diff_weight
-        self.mseloss = nn.MSELoss()
+        '''
+        input :
+            - alpha []
+            - diff_weight []
+        '''
+        # TODO
 
     def __call__(self, pred, target, diff_sq):
-        reg = self.alpha * pred**2
-        loss = self.mseloss(pred, target) + reg
+        '''
+        input :
+            - pred [B, D]
+            - target [B, D]
+        output : Loss
+            - loss []
 
-        if self.diff_weight:
-            loss = loss / diff_sq
-
-        loss = loss.mean()
+        '''
+        # TODO : Implement the DSM Loss.
+        loss = None
         return loss
 
 class ISMLoss():

@@ -1,0 +1,51 @@
+import torch
+from tqdm import tqdm
+from itertools import repeat
+
+def get_step_fn(loss_fn, optimizer, ema, sde, model):
+    def step_fn(batch):
+        # TODO: uniformly sample time step
+        t = None
+
+        # TODO: perform forward diffusion
+        xt = None
+        pred = model(t, xt.float())
+
+        # TODO: derive the target score value
+        target = None
+
+        # get loss
+        loss = loss_fn(pred, target, diff_sq)
+
+        # optimize model
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        if ema is not None:
+            ema.update()
+
+        return loss.item()
+
+    return step_fn
+
+
+def repeater(data_loader):
+    for loader in repeat(data_loader):
+        for data in loader:
+            yield data
+
+
+def train_diffusion(dataloader, step_fn, N_steps):
+    pbar = tqdm(range(N_steps), bar_format="{desc}{bar}{r_bar}", mininterval=1)
+    loader = iter(repeater(dataloader))
+
+    log_freq = 200
+    loss_history = torch.zeros(N_steps//log_freq)
+    for i, step in enumerate(pbar):
+        batch = next(loader)
+        loss = step_fn(batch)
+
+        if step % log_freq == 0:
+            loss_history[i//log_freq] = loss
+            pbar.set_description("Loss: {:.3f}".format(loss))
