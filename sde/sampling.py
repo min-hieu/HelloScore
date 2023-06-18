@@ -51,4 +51,3 @@ class Sampler():
             return out, ntot, timesteps, x_hist
 
         return sampling_fn
-
