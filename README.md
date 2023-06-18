@@ -1,4 +1,5 @@
 # Introduction to Score-based Generative Modeling
+made by Charlie - hieuristics [at] kaist.ac.kr 
 
 ## Task 0: Introduction
 We know that a stochastic differential equation has the following form:
