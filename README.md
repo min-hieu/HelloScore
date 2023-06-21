@@ -36,3 +36,15 @@ A typical diffusion pipeline is divided into three components:
 3. Sampling
 
 In this task, we will look into each component one by one and implement them sequentially.
+
+## Resources
+- [[paper](https://arxiv.org/abs/2011.13456)] Score-Based Generative Modeling through Stochastic Differential Equations
+- [[paper](https://arxiv.org/abs/2006.11239)] Denoising Diffusion Probabilistic Models
+- [[paper](https://arxiv.org/abs/2105.05233)] Diffusion Models Beat GANs on Image Synthesis
+- [[paper](https://arxiv.org/abs/2207.12598)] Classifier-Free Diffusion Guidance
+- [[paper](https://arxiv.org/abs/2010.02502)] Denoising Diffusion Implicit Models
+- [[paper](https://arxiv.org/abs/2206.00364)] Elucidating the Design Space of Diffusion-Based Generative Models
+- [[paper](https://arxiv.org/abs/2106.02808)] A Variational Perspective on Diffusion-Based Generative Models and Score Matching
+- [[paper](https://arxiv.org/abs/2305.16261)] Trans-Dimensional Generative Modeling via Jump Diffusion Models
+- [[paper](https://openreview.net/pdf?id=nioAdKCEdXB)] Likelihood Training of Schrödinger Bridge using Forward-Backward SDEs Theory
+- [[lecture]()] Charlie's Playlist on Diffusion Processes
