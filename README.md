@@ -1,6 +1,26 @@
 # Introduction to Score-based Generative Modeling
 made by Charlie - hieuristics [at] kaist.ac.kr 
 
+## Setup
+
+Install the required package within the `requirements.txt`
+```
+pip install -r requirements.txt
+```
+
+## Code Structure
+```
+.
+├── HelloScoreMinimal.ipynb   <--- Assemble 
+├── dataset.py                <--- Define dataset (Swiss-roll, moon, gaussians, etc.)
+├── loss.py                   <--- Define Training Objective (TODO)
+├── network.py                <--- Define Network Architecture (TODO)
+├── requirements.txt          <--- required packages 
+├── sampling.py               <--- Define Discretization and Sampling (TODO)
+├── sde.py                    <--- Define SDE Processes (TODO)
+└── train_utils.py            <--- Define Training Loop (TODO)
+```
+
 ## Task 0: Introduction
 We know that a stochastic differential equation has the following form:
 $$d\mathbf{X}_t = f(t,\mathbf{X}_t)dt + G(t)d\mathbf{B}_t$$
@@ -26,16 +46,53 @@ where $\bar{\mathbf{B}}_t$ is the reverse brownian noise. The only unknown term 
 $\nabla_x\log p_t(\mathbf{X}_t)$, which we will approximate with a Neural Network. One main difference 
 between SGM and other generative models is that they generate iteratively during the sampling process.
 
-TODO:
+**TODO:**
+```
 - Derive close-form equation for the mean and std of OU process at time t.
-
+```
 ## Task 1: Implement a simple pipeline for SGM with delicious swiss-roll
 A typical diffusion pipeline is divided into three components:
 1. Forward Process and Reverse Process
 2. Training
 3. Sampling
 
-In this task, we will look into each component one by one and implement them sequentially.
+In this task, we will look into each component one by one and implement them sequentially. 
+#### 1. Forward and Reverse Process  
+<p align="center">
+<img width="364" alt="image" src="https://github.com/min-hieu/HelloScore/assets/53557912/70352400-ac68-4509-b648-f64adcc602bc">
+</p>
+
+Our first goal is to setup the forward and reverse processes. In the forward process, the final distribution should be 
+the prior distribution which is the standard normal distribution. 
+#### (a) OU Process
+Following the formulation of the OU Process introduced in the previous section, complete the `TODO` in the 
+`sde.py` and check if the final distribution approach unit gaussian.
+<p align="center">
+<img width="530" alt="image" src="https://github.com/min-hieu/HelloScore/assets/53557912/78fdbb14-b60b-43a9-a90e-a57dd1bcc44a">
+</p>
+
+The visualization of the final distribution should look like this:
+<p align="center">
+<img width="337" alt="image" src="https://github.com/min-hieu/HelloScore/assets/53557912/1ec0aeee-0ac1-4594-85c4-34f56fa47198">
+</p>
+
+**TODO:**
+```
+- implement the
+- (optional) Play around with terminal time (T) and number of time step (N).
+  show that the mean and std follow the derived mean and std in task 0.
+```
+#### (b) VPSDE 
+#### (c) VESDE
+
+#### 2. Training  
+#### (a) DSM Loss
+#### (b) ISM Loss
+
+#### 3. Sampling  
+
+## Task 2: Implement Image-based Diffusion
+
 
 ## Resources
 - [[paper](https://arxiv.org/abs/2011.13456)] Score-Based Generative Modeling through Stochastic Differential Equations
