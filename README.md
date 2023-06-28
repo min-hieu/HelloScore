@@ -125,8 +125,8 @@ of the marginal probabillity. Therefore, we have to run the simulation process. 
 
 **TODO:**
 ```
-- implement the SDE discretization.
-- (optional) implement the ODE discretization and compare their differences.
+- implement the SDE discretization in sampling.py
+- (optional) implement the ODE discretization and check out their differences
 ```
 
 ## Task 2: Implement Image-based Diffusion
