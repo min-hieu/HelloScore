@@ -48,7 +48,7 @@ between SGM and other generative models is that they generate iteratively during
 
 **TODO:**
 ```
-- Derive close-form equation for the mean and std of OU process at time t.
+- Derive the expression for the mean and std of the OU process at time t given X0 = 0.
 ```
 ## Task 1: Implement a simple pipeline for SGM with delicious swiss-roll
 A typical diffusion pipeline is divided into three components:
@@ -78,18 +78,49 @@ The visualization of the final distribution should look like this:
 
 **TODO:**
 ```
-- implement the
-- (optional) Play around with terminal time (T) and number of time step (N).
-  show that the mean and std follow the derived mean and std in task 0.
+- implement the forward process using the given marginal probability p_t0(Xt|X0) in SDE.py
+- implement the reverse process for general SDE in SDE.py
+- (optional) Play around with terminal time (T) and number of time step (N)
+  show that the mean and std follow the derived mean and std in task 0
 ```
-#### (b) VPSDE 
-#### (c) VESDE
+#### (b) VPSDE & VESDE
+It's mentioned by [Yang Song et al. (2021)](https://arxiv.org/abs/2011.13456) that the DDPM and SMLD are distretization of SDEs. 
+Implement this in the `sde.py` and check their mean and and std.
+
+*hint* Although you can simulate the diffusion process through discretization, try getting the explicit equation for the marginal probability $p_{t0}(\mathbf{X}_t \mid \mathbf{X}_0)$
+
+**TODO:**
+```
+- implement VPSDE in SDE.py
+- implement VESDE in SDE.py
+- plot the variance of VPSDE and VESDE vs. time
+```
 
 #### 2. Training  
-#### (a) DSM Loss
-#### (b) ISM Loss
+The typical training objective of diffusion model uses **D**enoising **S**core **M**atching loss:
 
+$$f_{\theta^*} = \textrm{ argmin }  \mathbb{E} [||f_\theta(\mathbf{X}s) - \nabla p_{s0}(\mathbf{X}_s\mid \mathbf{X}_0)||^2] $$
+
+Where $f_{\theta^*}$ is the optimized score prediction network with parameter $\theta^*$.
+However, there are other training objectives with their different trade-offs (ISM, SSM, EDM, etc.). Highly recommend to checkout 
+[A Variational Perspective on Diffusion-based Generative Models and Score Matching](https://arxiv.org/abs/2106.02808) 
+and [Elucidating the Design Space of Diffusion-Based Generative Models](https://arxiv.org/abs/2206.00364) for a more in-depth analysis of the recent training objectives.
+
+**TODO:**
+```
+- implement your own network in network.py
+  (Recommend to implement Positional Encoding)
+- implement DSM in loss.py
+- implement the training loop in train_utils.py
+```
 #### 3. Sampling  
+Finally, we can now use the trained score prediction network to sample from the swiss-roll dataset. Unlike the forward process, there is no 
+
+**TODO:**
+```
+- implement the SDE discretization.
+- implement the ODE discretization and 
+```
 
 ## Task 2: Implement Image-based Diffusion
 
