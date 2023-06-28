@@ -87,7 +87,7 @@ The visualization of the final distribution should look like this:
 It's mentioned by [Yang Song et al. (2021)](https://arxiv.org/abs/2011.13456) that the DDPM and SMLD are distretization of SDEs. 
 Implement this in the `sde.py` and check their mean and and std.
 
-*hint* Although you can simulate the diffusion process through discretization, try getting the explicit equation for the marginal probability $p_{t0}(\mathbf{X}_t \mid \mathbf{X}_0)$
+*hint*: Although you can simulate the diffusion process through discretization, sampling the explicit equation for the marginal probability $p_{t0}(\mathbf{X}_t \mid \mathbf{X}_0)$ is much faster.
 
 **TODO:**
 ```
@@ -101,7 +101,7 @@ The typical training objective of diffusion model uses **D**enoising **S**core *
 
 $$f_{\theta^*} = \textrm{ argmin }  \mathbb{E} [||f_\theta(\mathbf{X}s) - \nabla p_{s0}(\mathbf{X}_s\mid \mathbf{X}_0)||^2] $$
 
-Where $f_{\theta^*}$ is the optimized score prediction network with parameter $\theta^*$.
+Where $f$ is the score prediction network with parameter $\theta^*$.
 However, there are other training objectives with their different trade-offs (ISM, SSM, EDM, etc.). Highly recommend to checkout 
 [A Variational Perspective on Diffusion-based Generative Models and Score Matching](https://arxiv.org/abs/2106.02808) 
 and [Elucidating the Design Space of Diffusion-Based Generative Models](https://arxiv.org/abs/2206.00364) for a more in-depth analysis of the recent training objectives.
