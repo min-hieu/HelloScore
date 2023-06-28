@@ -52,9 +52,9 @@ between SGM and other generative models is that they generate iteratively during
 ```
 ## Task 1: Implement a simple pipeline for SGM with delicious swiss-roll
 A typical diffusion pipeline is divided into three components:
-1. Forward Process and Reverse Process
-2. Training
-3. Sampling
+1. [Forward Process and Reverse Process](#1-forward-and-reverse-process)
+2. [Training](#2-training)
+3. [Sampling](#3-sampling)
 
 In this task, we will look into each component one by one and implement them sequentially. 
 #### 1. Forward and Reverse Process  
