@@ -11,14 +11,14 @@ pip install -r requirements.txt
 ## Code Structure
 ```
 .
-├── HelloScoreMinimal.ipynb   <--- Assemble 
-├── dataset.py                <--- Define dataset (Swiss-roll, moon, gaussians, etc.)
-├── loss.py                   <--- Define Training Objective (TODO)
-├── network.py                <--- Define Network Architecture (TODO)
 ├── requirements.txt          <--- required packages 
-├── sampling.py               <--- Define Discretization and Sampling (TODO)
-├── sde.py                    <--- Define SDE Processes (TODO)
-└── train_utils.py            <--- Define Training Loop (TODO)
+├── HelloScoreMinimal.ipynb   <--- main code 
+├── dataset.py                <--- Define dataset (Swiss-roll, moon, gaussians, etc.)
+├── loss.py                   <--- (TODO) Define Training Objective 
+├── network.py                <--- (TODO) Define Network Architecture 
+├── sampling.py               <--- (TODO) Define Discretization and Sampling 
+├── sde.py                    <--- (TODO) Define SDE Processes 
+└── train_utils.py            <--- (TODO) Define Training Loop 
 ```
 
 ## Task 0: Introduction
