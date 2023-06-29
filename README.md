@@ -179,10 +179,9 @@ define a diffusion (bridge) that map between the Moon dataset and the swiss roll
 
 Like any diffusion process, there are many ways to learn the Schrödinger Bridge. This section focus on the work presented in 
 
-#### 6. [Coming Soon] Jump Diffusion (Optional)
-
-
 ## Task 2: Image Diffusion [Coming Soon]
+
+## Task 3: Jump Diffusion [Coming Soon] (Optional)
 
 
 ## Resources
