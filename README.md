@@ -1,5 +1,17 @@
 # Introduction to Score-based Generative Modeling
 made by Charlie - hieuristics [at] kaist.ac.kr 
+<details>
+<summary>Table of Content</summary>
+
+- [Task 0](#task-0-introduction)
+- [Task 1](#task-1-very-simple-sgm-pipeline-with-delicious-swiss-roll)
+  - [1.1](#1-forward-and-reverse-process) [(a)](#a-ou-process), [(b)](#b-vpsde--vesde)
+  - [1.2](#2-training)
+  - [1.3](#3-sampling)
+  - [1.4](#4-evaluation)
+- [Task 2](#task-2-image-diffusion)
+
+</details>
 
 ## Setup
 
@@ -27,7 +39,7 @@ $$d\mathbf{X}_t = f(t,\mathbf{X}_t)dt + G(t)d\mathbf{B}_t$$
 where $f$ and $G$ are the drift and diffusion coefficients respectively and $\mathbf{B}_t$ is the 
 standard Brownian noise. A popular SDE often used is called Ornstein-Uhlenbeck (OU) process 
 which is defined as 
-$$d\mathbf{X}_t = \mu \mathbf{X}_tdt + \sigma d\mathbf{B}_t$$
+$$d\mathbf{X}_t = -\mu \mathbf{X}_tdt + \sigma d\mathbf{B}_t$$
 Where $\mu, \sigma$ are constants. In this tutorial, we will set $\mu = \frac{1}{2}, \sigma = 1$.
 Score-based generative modelling (SGM) aims to sample from an unknown distribution of a given dataset.
 We have the following two observations: 
@@ -49,11 +61,16 @@ between SGM and other generative models is that they generate iteratively during
 **TODO:**
 ```
 - Derive the expression for the mean and std of the OU process at time t given X0 = 0,
-  i.e. Find E[Xt|X0] and Var[Xt|X0]
+  i.e. Find E[Xt|X0] and Var[Xt|X0]. You will need this for task 1.1(a).
 ```
-*hint*: We know that 
+*hint*: We know that the solution to the OU process is given as
 
-## Task 1: Implement a simple pipeline for SGM with delicious swiss-roll
+$\mathbf{X}_T = \mathbf{X}_0 e^{-\mu T} + \sigma \int_0^T e^{-\mu(T-t)} d\mathbf{B}_t$
+
+and you can use the fact that $d\mathbf{B}_t^2 = dt$, and $\mathbb{E}[\int_0^T f(t) d\mathbf{B}_t] = 0$ where $f(t)$ is any 
+deterministic function.
+
+## Task 1: very simple SGM pipeline with delicious swiss-roll
 A typical diffusion pipeline is divided into three components:
 1. [Forward Process and Reverse Process](#1-forward-and-reverse-process)
 2. [Training](#2-training)
@@ -148,7 +165,15 @@ Your method should be on par or better than the following metrics. For this task
 | swiss-roll          |    |     |
 | circle              |    |     |
 
-## Task 2: Implement Image-based Diffusion
+#### 5. Schrödinger Bridge (Optional)
+One restriction to the typical diffusion processes are that they requires the prior to be easy to sample (gaussian, uniform, etc.). 
+Schrödinger Bridge removes this limitation by making the forward process also learnable and allow a diffusion defined between **two** unknown distribution. 
+For example, with Schrödinger Bridge, you don't need to know the underlying distribution of the Moon dataset but you can still 
+define a diffusion (bridge) that map between the Moon dataset and the swiss roll as shown below. 
+
+Like any diffusion process, there are many ways to learn the Schrödinger Bridge. This section focus on the work presented in 
+
+## Task 2: Image Diffusion  
 
 
 ## Resources
