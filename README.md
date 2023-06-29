@@ -118,9 +118,7 @@ Finally, we can now use the trained score prediction network to sample from the 
 of the marginal probabillity. Therefore, we have to run the simulation process. Your final sampling should be close to the target distribution:
 
 <p align="center">
-  <img width="161" alt="image" src="https://github.com/min-hieu/HelloScore/assets/53557912/c99737e7-3ebf-4e57-9eb3-5c78b5c334cc">
-  <img width="154" alt="image" src="https://github.com/min-hieu/HelloScore/assets/53557912/64661f74-8e64-4d0c-a129-9927f4c57f24">
-  <img height="160" alt="image" src="https://github.com/min-hieu/HelloScore/assets/53557912/f32b0483-a115-4748-8bd2-e879e57548d2">
+  <img height="300" alt="image" src="https://github.com/min-hieu/HelloScore/assets/53557912/bb246de4-431c-4f0c-95ca-6f8323803e2c">
 </p>
 
 **TODO:**
