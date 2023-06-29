@@ -48,8 +48,11 @@ between SGM and other generative models is that they generate iteratively during
 
 **TODO:**
 ```
-- Derive the expression for the mean and std of the OU process at time t given X0 = 0.
+- Derive the expression for the mean and std of the OU process at time t given X0 = 0,
+  i.e. Find E[Xt|X0] and Var[Xt|X0]
 ```
+*hint*: We know that 
+
 ## Task 1: Implement a simple pipeline for SGM with delicious swiss-roll
 A typical diffusion pipeline is divided into three components:
 1. [Forward Process and Reverse Process](#1-forward-and-reverse-process)
@@ -66,34 +69,40 @@ Our first goal is to setup the forward and reverse processes. In the forward pro
 the prior distribution which is the standard normal distribution. 
 #### (a) OU Process
 Following the formulation of the OU Process introduced in the previous section, complete the `TODO` in the 
-`sde.py` and check if the final distribution approach unit gaussian.
+`sde.py` and check if the final distribution approach unit gaussian as $t\rightarrow \infty$.
+
 <p align="center">
-<img width="530" alt="image" src="https://github.com/min-hieu/HelloScore/assets/53557912/78fdbb14-b60b-43a9-a90e-a57dd1bcc44a">
+<img width="840" alt="image" src="https://github.com/min-hieu/HelloScore/assets/53557912/d7d9341f-bff9-471c-b8e8-922fcddb8c09">
 </p>
 
-The visualization of the final distribution should look like this:
-<p align="center">
-<img width="337" alt="image" src="https://github.com/min-hieu/HelloScore/assets/53557912/1ec0aeee-0ac1-4594-85c4-34f56fa47198">
-</p>
 
 **TODO:**
 ```
 - implement the forward process using the given marginal probability p_t0(Xt|X0) in SDE.py
 - implement the reverse process for general SDE in SDE.py
-- (optional) Play around with terminal time (T) and number of time step (N)
-  show that the mean and std follow the derived mean and std in task 0
+- (optional) Play around with terminal time (T) and number of time steps (N) and observe its effect
 ```
+
 #### (b) VPSDE & VESDE
 It's mentioned by [Yang Song et al. (2021)](https://arxiv.org/abs/2011.13456) that the DDPM and SMLD are distretization of SDEs. 
 Implement this in the `sde.py` and check their mean and and std.
 
-*hint*: Although you can simulate the diffusion process through discretization, sampling the explicit equation for the marginal probability $p_{t0}(\mathbf{X}_t \mid \mathbf{X}_0)$ is much faster.
+*hint*: Although you can simulate the diffusion process through discretization, sampling the explicit equation for the marginal probability $p_{t0}(\mathbf{X}_t \mid \mathbf{X}_0)$ is much faster. 
+It's recommend to read through the [SDE paper](https://arxiv.org/abs/2011.13456) for the derivation of the marginal probability
+
+You should also obtain the following graphs for VPSDE and VESDE respectively
+<p align="center">
+  <img width="840" alt="image" src="https://github.com/min-hieu/HelloScore/assets/53557912/c7c5a3f1-675f-4817-8aa2-5d041c939ff6">
+  <img width="840" alt="image" src="https://github.com/min-hieu/HelloScore/assets/53557912/bfd738a9-d562-4804-b982-5134b1e6884a">
+">
+</p>
 
 **TODO:**
 ```
 - implement VPSDE in SDE.py
 - implement VESDE in SDE.py
-- plot the variance of VPSDE and VESDE vs. time
+- plot the mean and variance of VPSDE and VESDE vs. time.
+  What can you say about the differences between OU, VPSDE, VESDE?
 ```
 
 #### 2. Training  
@@ -109,18 +118,20 @@ and [Elucidating the Design Space of Diffusion-Based Generative Models](https://
 **TODO:**
 ```
 - implement your own network in network.py
-  (Recommend to implement Positional Encoding)
+  (Recommend to implement Positional Encoding, Residual Connection)
 - implement DSMLoss in loss.py
 - implement ISMLoss in loss.py
 - implement the training loop in train_utils.py
 ```
 #### 3. Sampling  
 Finally, we can now use the trained score prediction network to sample from the swiss-roll dataset. Unlike the forward process, there is no analytical form 
-of the marginal probabillity. Therefore, we have to run the simulation process. Your final sampling should be close to the target distribution **within 10000 training steps**:
+of the marginal probabillity. Therefore, we have to run the simulation process. Your final sampling should be close to the target distribution 
+**within 10000 training steps**. For this task, you are free to use **ANY** variations of diffusion process that **was mentioned** above.
 
 <p align="center">
   <img height="300" alt="image" src="https://github.com/min-hieu/HelloScore/assets/53557912/bb246de4-431c-4f0c-95ca-6f8323803e2c">
 </p>
+
 
 **TODO:**
 ```
@@ -129,7 +140,13 @@ of the marginal probabillity. Therefore, we have to run the simulation process. 
 ```
 #### 4. Evaluation
 To evaluate your performance, we compute the chamfer distance (CD) and earth mover distance (EMD) between the target and generated point cloud.
-Your method should be on par or better than the following metrics.
+Your method should be on par or better than the following metrics. For this task, you can use **ANY** variations, even ones that were **NOT** mentioned.
+
+| target distribution | CD | EMD |
+|---------------------|----|-----|
+| moon                |    |     |
+| swiss-roll          |    |     |
+| circle              |    |     |
 
 ## Task 2: Implement Image-based Diffusion
 
