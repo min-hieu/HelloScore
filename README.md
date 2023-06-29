@@ -128,7 +128,12 @@ The typical training objective of diffusion model uses **D**enoising **S**core *
 $$f_{\theta^*} = \textrm{ argmin }  \mathbb{E} [||f_\theta(\mathbf{X}s) - \nabla p_{s0}(\mathbf{X}_s\mid \mathbf{X}_0)||^2] $$
 
 Where $f$ is the score prediction network with parameter $\theta^*$.
-However, there are other training objectives with their different trade-offs (ISM, SSM, EDM, etc.). Highly recommend to checkout 
+Another popular training objective is **I**mplicit **S**core **M**atching loss which can be derived from DSM.
+One main different between ISM and DSM is that ISM doesn't require to compute the gradient but instead the divergence. 
+In certain cases where it is hard to compute gradient in the [domain of interest](https://arxiv.org/abs/2202.02763) or 
+when the problem [naturally contains divergence](https://openreview.net/pdf?id=nioAdKCEdXB), ISM is used.
+
+However, there are other training objectives with their different trade-offs (SSM, EDM, etc.). Highly recommend to checkout 
 [A Variational Perspective on Diffusion-based Generative Models and Score Matching](https://arxiv.org/abs/2106.02808) 
 and [Elucidating the Design Space of Diffusion-Based Generative Models](https://arxiv.org/abs/2206.00364) for a more in-depth analysis of the recent training objectives.
 
@@ -136,8 +141,9 @@ and [Elucidating the Design Space of Diffusion-Based Generative Models](https://
 ```
 - implement your own network in network.py
   (Recommend to implement Positional Encoding, Residual Connection)
+- implement ISMLoss in loss.py (hint: you will need to use torch.autograd.grad)
 - implement DSMLoss in loss.py
-- implement ISMLoss in loss.py
+- (optional) implement SSMLoss in loss.py
 - implement the training loop in train_utils.py
 ```
 #### 3. Sampling  
@@ -165,7 +171,7 @@ Your method should be on par or better than the following metrics. For this task
 | swiss-roll          |    |     |
 | circle              |    |     |
 
-#### 5. Schrödinger Bridge (Optional)
+#### 5. [Coming Soon] Schrödinger Bridge (Optional)
 One restriction to the typical diffusion processes are that they requires the prior to be easy to sample (gaussian, uniform, etc.). 
 Schrödinger Bridge removes this limitation by making the forward process also learnable and allow a diffusion defined between **two** unknown distribution. 
 For example, with Schrödinger Bridge, you don't need to know the underlying distribution of the Moon dataset but you can still 
@@ -173,7 +179,10 @@ define a diffusion (bridge) that map between the Moon dataset and the swiss roll
 
 Like any diffusion process, there are many ways to learn the Schrödinger Bridge. This section focus on the work presented in 
 
-## Task 2: Image Diffusion  
+#### 6. [Coming Soon] Jump Diffusion (Optional)
+
+
+## Task 2: Image Diffusion [Coming Soon]
 
 
 ## Resources
