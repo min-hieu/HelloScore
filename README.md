@@ -110,12 +110,13 @@ and [Elucidating the Design Space of Diffusion-Based Generative Models](https://
 ```
 - implement your own network in network.py
   (Recommend to implement Positional Encoding)
-- implement DSM in loss.py
+- implement DSMLoss in loss.py
+- implement ISMLoss in loss.py
 - implement the training loop in train_utils.py
 ```
 #### 3. Sampling  
 Finally, we can now use the trained score prediction network to sample from the swiss-roll dataset. Unlike the forward process, there is no analytical form 
-of the marginal probabillity. Therefore, we have to run the simulation process. Your final sampling should be close to the target distribution:
+of the marginal probabillity. Therefore, we have to run the simulation process. Your final sampling should be close to the target distribution **within 10000 training steps**:
 
 <p align="center">
   <img height="300" alt="image" src="https://github.com/min-hieu/HelloScore/assets/53557912/bb246de4-431c-4f0c-95ca-6f8323803e2c">
@@ -126,6 +127,9 @@ of the marginal probabillity. Therefore, we have to run the simulation process. 
 - implement the SDE discretization in sampling.py
 - (optional) implement the ODE discretization and check out their differences
 ```
+#### 4. Evaluation
+To evaluate your performance, we compute the chamfer distance (CD) and earth mover distance (EMD) between the target and generated point cloud.
+Your method should be on par or better than the following metrics.
 
 ## Task 2: Implement Image-based Diffusion
 
