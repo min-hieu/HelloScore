@@ -87,7 +87,7 @@ Following the formulation of the OU Process introduced in the previous section, 
 It's mentioned by [Yang Song et al. (2021)](https://arxiv.org/abs/2011.13456) that the DDPM and SMLD are distretization of SDEs. 
 Implement this in the `sde.py` and check their mean and and std.
 
-*hint*: Although you can simulate the diffusion process through discretization, sampling the explicit equation for the marginal probability $p_{t0}(\mathbf{X}_t \mid \mathbf{X}_0)$ is much faster. 
+*hint*: Although you can simulate the diffusion process through discretization, sampling with the explicit equation of the marginal probability $p_{t0}(\mathbf{X}_t \mid \mathbf{X}_0)$ is much faster. 
 It's recommend to read through the [SDE paper](https://arxiv.org/abs/2011.13456) for the derivation of the marginal probability
 
 You should also obtain the following graphs for VPSDE and VESDE respectively
