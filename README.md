@@ -33,6 +33,17 @@ pip install -r requirements.txt
 └── train_utils.py            <--- (TODO) Define Training Loop 
 ```
 
+## Tutorial Tips
+
+Implementation of Diffusion Models is typically very simple once you understand the theory.
+So, to learn the most from this tutorial, it's highly recommended to check out the details in the 
+related papers and understand the equations **BEFORE** you start the tutorial. You can check out 
+the resources in this order:
+1. [[blog](https://min-hieu.github.io/blogs/blogs/brownian/)] Charlie's "Brownian Motion and SDE"
+2. [[paper](https://arxiv.org/abs/2011.13456)] Score-Based Generative Modeling through Stochastic Differential Equations
+3. [[blog](https://lilianweng.github.io/posts/2021-07-11-diffusion-models/)] Lilian Wang's "What is Diffusion Model?"
+4. [[paper](https://arxiv.org/abs/2006.11239)] Denoising Diffusion Probabilistic Models
+
 ## Task 0: Introduction
 We know that a stochastic differential equation has the following form:
 $$d\mathbf{X}_t = f(t,\mathbf{X}_t)dt + G(t)d\mathbf{B}_t$$
