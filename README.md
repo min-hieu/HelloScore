@@ -196,6 +196,7 @@ Like any diffusion process, there are many ways to learn the Schrödinger Bridge
 
 ## Resources
 - [[paper](https://arxiv.org/abs/2011.13456)] Score-Based Generative Modeling through Stochastic Differential Equations
+- [[paper](https://arxiv.org/abs/2006.09011)] Improved Techniques for Training Score-Based Generative Models
 - [[paper](https://arxiv.org/abs/2006.11239)] Denoising Diffusion Probabilistic Models
 - [[paper](https://arxiv.org/abs/2105.05233)] Diffusion Models Beat GANs on Image Synthesis
 - [[paper](https://arxiv.org/abs/2207.12598)] Classifier-Free Diffusion Guidance
