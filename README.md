@@ -168,9 +168,12 @@ of the marginal probabillity. Therefore, we have to run the simulation process. 
 
 **TODO:**
 ```
-- implement the SDE discretization in sampling.py
+- implement the predict_fn in sde.py
+- complete the code in sampling.py
+- (optional) implement the correct_fn (for VPSDE, VESDE) in sde.py
 - (optional) implement the ODE discretization and check out their differences
 ```
+
 #### 4. Evaluation
 To evaluate your performance, we compute the chamfer distance (CD) and earth mover distance (EMD) between the target and generated point cloud.
 Your method should be on par or better than the following metrics. For this task, you can use **ANY** variations, even ones that were **NOT** mentioned.
