@@ -170,6 +170,7 @@ of the marginal probabillity. Therefore, we have to run the simulation process. 
 ```
 - implement the predict_fn in sde.py
 - complete the code in sampling.py
+- (optional) train with ema
 - (optional) implement the correct_fn (for VPSDE, VESDE) in sde.py
 - (optional) implement the ODE discretization and check out their differences
 ```
