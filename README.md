@@ -153,8 +153,8 @@ and [Elucidating the Design Space of Diffusion-Based Generative Models](https://
   (Recommend to implement Positional Encoding, Residual Connection)
 - implement ISMLoss in loss.py (hint: you will need to use torch.autograd.grad)
 - implement DSMLoss in loss.py
-- (optional) implement SSMLoss in loss.py
 - implement the training loop in train_utils.py
+- (optional) implement SSMLoss in loss.py
 ```
 #### 3. Sampling  
 Finally, we can now use the trained score prediction network to sample from the swiss-roll dataset. Unlike the forward process, there is no analytical form 
