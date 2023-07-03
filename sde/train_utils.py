@@ -1,7 +1,19 @@
 import torch
 from tqdm import tqdm
 from itertools import repeat
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
+
+def freeze(model):
+    for p in model.parameters():
+        p.requires_grad = False
+    model.eval()
+    return model
+
+def unfreeze(model):
+    for p in model.parameters():
+        p.requires_grad = True
+    model.train()
+    return model
 
 def get_step_fn(loss_fn, optimizer, ema, sde, model):
     def step_fn(batch):
@@ -17,7 +29,7 @@ def get_step_fn(loss_fn, optimizer, ema, sde, model):
 
         # get loss
         target = - (z / std).float()
-        loss = loss_fn(t, xt.float(), model, target, diff_sq)
+        loss = loss_fn(t, xt.float(), model1, target, diff_sq)
 
         # optimize model
         optimizer.zero_grad()
@@ -30,6 +42,19 @@ def get_step_fn(loss_fn, optimizer, ema, sde, model):
         return loss.item()
 
     return step_fn
+
+
+def get_sb_step_fn(model_f, model_b, ema_f, ema_b, opt_f, opt_b, loss_fn, sb):
+    def step_fn_alter(batch, forward):
+
+    def step_fn_joint(batch):
+        opt_f.zero_grad()
+        opt_b.zero_grad()
+
+    if joint:
+        return step_fn_joint
+    else:
+        return step_fn_alter
 
 
 def repeater(data_loader):
@@ -51,7 +76,7 @@ def train_diffusion(dataloader, step_fn, N_steps, plot=False):
         if step % log_freq == 0:
             loss_history[i//log_freq] = loss
             pbar.set_description("Loss: {:.3f}".format(loss))
-            
+
     if plot:
         plt.plot(range(len(loss_history)), loss_history)
         plt.show()
