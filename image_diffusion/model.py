@@ -58,26 +58,23 @@ class Diffusion(nn.Module):
         return next(self.network.parameters()).device
 
     @torch.no_grad()
-    def sample(self, batch_size, return_traj=False):
-        x_T = torch.randn([batch_size, 3, 32, 32]).to(self.device)
+    def sample(self, batch_size, return_traj=False, image_resolution=32):
+        x_T = torch.randn([batch_size, 3, image_resolution, image_resolution]).to(self.device)
 
-        traj = {self.var_scheduler.num_inference_timesteps}
-        for t in range(self.var_scheduler.timesteps):
-            x_t = traj[t]
-            t_prev = t - self.num_train_timesteps // self.num_inference_timesteps
-            noise_pred = self.network(x_t, timestep=t)
-            x_t_prev = self.var_scheduler(x_t, t, noise_pred)
+        traj = [x_T]
+        for t in self.var_scheduler.timesteps:
+            x_t = traj[-1]
+            noise_pred = self.network(x_t, timestep=t.to(self.device))
+            x_t_prev = self.var_scheduler.step(x_t, t, noise_pred)
 
-            traj[t_prev] = x_t_prev.detach()
-            traj[t] = traj[t].cpu()
-
-            if not return_traj:
-                del traj[t]
+            traj[-1] = traj[-1].cpu()
+            traj.append(x_t_prev.detach())
+            
 
         if return_traj:
             return traj
         else:
-            return traj[0]
+            return traj[-1]
 
 
     # @torch.no_grad()

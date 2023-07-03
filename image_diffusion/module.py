@@ -162,6 +162,8 @@ class TimeEmbedding(nn.Module):
         return embedding
 
     def forward(self, t):
+        if t.ndim == 0:
+            t = t.unsqueeze(-1)
         t_freq = self.timestep_embedding(t, self.frequency_embedding_size)
         t_emb = self.mlp(t_freq)
         return t_emb
