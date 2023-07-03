@@ -1,6 +1,7 @@
 import torch
 from tqdm import tqdm
 from itertools import repeat
+import matplotlib.pyplot as plt 
 
 def get_step_fn(loss_fn, optimizer, ema, sde, model):
     def step_fn(batch):
@@ -14,12 +15,9 @@ def get_step_fn(loss_fn, optimizer, ema, sde, model):
         z = torch.randn(mean.shape)
         xt = mean + std * z
 
-        # make training batch
-        target = - (z / std).float()
-        pred = model(t, xt.float())
-
         # get loss
-        loss = loss_fn(pred, target, diff_sq)
+        target = - (z / std).float()
+        loss = loss_fn(t, xt.float(), model, target, diff_sq)
 
         # optimize model
         optimizer.zero_grad()
@@ -40,7 +38,7 @@ def repeater(data_loader):
             yield data
 
 
-def train_diffusion(dataloader, step_fn, N_steps):
+def train_diffusion(dataloader, step_fn, N_steps, plot=False):
     pbar = tqdm(range(N_steps), bar_format="{desc}{bar}{r_bar}", mininterval=1)
     loader = iter(repeater(dataloader))
 
@@ -53,3 +51,7 @@ def train_diffusion(dataloader, step_fn, N_steps):
         if step % log_freq == 0:
             loss_history[i//log_freq] = loss
             pbar.set_description("Loss: {:.3f}".format(loss))
+            
+    if plot:
+        plt.plot(range(len(loss_history)), loss_history)
+        plt.show()
