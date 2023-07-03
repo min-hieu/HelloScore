@@ -179,11 +179,11 @@ of the marginal probabillity. Therefore, we have to run the simulation process. 
 To evaluate your performance, we compute the chamfer distance (CD) and earth mover distance (EMD) between the target and generated point cloud.
 Your method should be on par or better than the following metrics. For this task, you can use **ANY** variations, even ones that were **NOT** mentioned.
 
-| target distribution | CD | EMD |
-|---------------------|----|-----|
-| moon                |    |     |
-| swiss-roll          |    |     |
-| circle              |    |     |
+| target distribution |    CD    |
+|---------------------|----------|
+| moon                |          |
+| swiss-roll          |  0.1975  |
+| circle              |          |
 
 #### 5. [Coming Soon] Schrödinger Bridge (Optional)
 One restriction to the typical diffusion processes are that they requires the prior to be easy to sample (gaussian, uniform, etc.). 
