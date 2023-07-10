@@ -64,7 +64,7 @@ From these facts, we can directly sample from the unknown distribution by
 [Yang Song et al. (2021)](https://arxiv.org/abs/2011.13456) derived the likelihood training scheme
 for learning the reverse process. In summary, the reverse process for any SDE given above is
 of the form
-$$d\mathbf{X}_t = [f(t,\mathbf{X}_t)dt - G(t)^2\nabla_x\log p_t(\mathbf{X}_t)] + G(t)d\bar{\mathbf{B}}_t$$
+$$d\mathbf{X}_t = [f(t,\mathbf{X}_t) - G(t)^2\nabla_x\log p_t(\mathbf{X}_t)]dt + G(t)d\bar{\mathbf{B}}_t$$
 where $\bar{\mathbf{B}}_t$ is the reverse brownian noise. The only unknown term is the score function
 $\nabla_x\log p_t(\mathbf{X}_t)$, which we will approximate with a Neural Network. One main difference
 between SGM and other generative models is that they generate iteratively during the sampling process.
