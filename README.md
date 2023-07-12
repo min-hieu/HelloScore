@@ -1,5 +1,21 @@
-# Introduction to Score-based Generative Modeling
-made by Charlie - hieuristics [at] kaist.ac.kr 
+<div align=center>
+  <h1>
+    Introduction to Score-based Generative Modeling
+  </h1>
+  <div align=center>
+    <div align=center>
+      <b>Nguyen Minh Hieu* &emsp; Juil Koo*</b>
+    </div>
+    <div align=center>
+      <p align=center>{hieuristics, 63days} [at] kaist.ac.kr</p>
+    </div>
+  </div>
+</div>
+
+<div align=center>
+   <img src="https://github.com/min-hieu/HelloScore/assets/53557912/6b07ea99-9936-47f3-ac40-3e432a013c88">
+</div>
+
 <details>
 <summary>Table of Content</summary>
 
