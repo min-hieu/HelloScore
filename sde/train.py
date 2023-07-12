@@ -2,6 +2,7 @@ import torch
 from tqdm import tqdm
 from itertools import repeat
 import matplotlib.pyplot as plt
+from loss import ISMLoss, DSMLoss
 
 def freeze(model):
     for p in model.parameters():
@@ -9,13 +10,15 @@ def freeze(model):
     model.eval()
     return model
 
+
 def unfreeze(model):
     for p in model.parameters():
         p.requires_grad = True
     model.train()
     return model
 
-def get_step_fn(loss_fn, optimizer, ema, sde, model):
+
+def get_sde_step_fn(model, ema, opt, loss_fn, sde):
     def step_fn(batch):
         # uniformly sample time step
         t = sde.T*torch.rand(batch.shape[0])
@@ -23,18 +26,24 @@ def get_step_fn(loss_fn, optimizer, ema, sde, model):
         # forward diffusion
         mean, std = sde.marginal_prob(t, batch)
         _, diffusion = sde.sde_coeff(t, batch)
-        diff_sq = diffusion ** 2
         z = torch.randn(mean.shape)
         xt = mean + std * z
 
         # get loss
-        target = - (z / std).float()
-        loss = loss_fn(t, xt.float(), model1, target, diff_sq)
+        if isinstance(loss_fn, DSMLoss):
+            diff_sq = diffusion ** 2
+            logp_grad = - (z / std).float()
+            loss = loss_fn(t, xt.float(), model, logp_grad, diff_sq)
+        elif isinstance(loss_fn, ISMLoss):
+            loss = loss_fn(t, xt.float(), model)
+        else:
+            print(loss_fn)
+            raise Exception("undefined loss")
 
         # optimize model
-        optimizer.zero_grad()
+        opt.zero_grad()
         loss.backward()
-        optimizer.step()
+        opt.step()
 
         if ema is not None:
             ema.update()
@@ -44,8 +53,10 @@ def get_step_fn(loss_fn, optimizer, ema, sde, model):
     return step_fn
 
 
-def get_sb_step_fn(model_f, model_b, ema_f, ema_b, opt_f, opt_b, loss_fn, sb):
+def get_sb_step_fn(model_f, model_b, ema_f, ema_b,
+                   opt_f, opt_b, loss_fn, sb, joint=True):
     def step_fn_alter(batch, forward):
+        pass
 
     def step_fn_joint(batch):
         opt_f.zero_grad()

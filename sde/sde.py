@@ -27,12 +27,12 @@ class SDE(abc.ABC):
     def correct_fn(self, t, x):
         return NotImplemented
 
-    def prior_sampling(self, x):
-        return torch.randn_like(x)
-
     def dw(self, x, dt=None):
         dt = self.dt if dt is None else dt
         return torch.randn_like(x) * (dt**0.5)
+
+    def prior_sampling(self, x):
+        return torch.randn_like(x)
 
     def predict_fn(self, t, x, dt=None):
         dt = self.dt if dt is None else dt
@@ -140,24 +140,30 @@ class EDM(SDE):
 
 
 class SB(abc.ABC):
-    def __init__(self, N=1000, T=1, forward_z=None, backward_z=None):
+    def __init__(self, N=1000, T=1, zf_model=None, zb_model=None):
         super().__init__()
         self.N = N         # number of time step
         self.T = T         # end time
         self.dt = T / N
+
         self.is_reverse = False
         self.is_bridge  = True
-        self.forward_z  = forward_z
-        self.backward_z = backward_z
+
+        self.zf_model = zf_model
+        self.zb_model = zb_model
+
+    def dw(self, x, dt=None):
+        dt = self.dt if dt is None else dt
+        return torch.randn_like(x) * (dt**0.5)
 
     @abc.abstractmethod
     def sde_coeff(self, t, x):
         return NotImplemented
 
     def sb_coeff(self, t, x):
-        assert(self.forward_z is not None)
+        assert(self.zf_model is not None)
         f, g = self.sde_coeff(t, x)
-        sb_f = f + g*forward_z(t,x)
+        sb_f = f + g*self.zf_model(t,x)
         return sb_f, g
 
     def predict_fn(self, t, x, dt=None):
@@ -166,27 +172,33 @@ class SB(abc.ABC):
         x = x + f*self.dt + g*self.dw(x, dt)
         return x
 
+    def correct_fn(self, t, x, dt=None):
+        return x
+
     def reverse(self, model):
         N = self.N
         T = self.T
-        forward_z  = forward_z
-        backward_z = backward_z
+        zf_model = zf_model
+        zb_model = zb_model
         forward_sde_coeff = self.sde_coeff
 
         class RSB(self.__class__):
             def __init__(self, model):
-                super().__init__(N, T, forward_z, backward_z)
+                super().__init__(N, T, zf_model, zb_model)
                 self.is_reverse = True
                 self.forward_sde_coeff = forward_sde_coeff
 
             def sb_coeff(self, t, x):
-                return f, g
+                assert(self.zb_model is not None)
+                f, g = self.sde_coeff(t, x)
+                sb_f = -f + g*self.zb_model(t,x)
+                return sb_f, g
 
         return RSDE(model)
 
 class OUSB(SB):
-    def __init__(self, N=1000, T=1, forward_z=None, backward_z=None):
-        super().__init__(N, T, forward_z, backward_z)
+    def __init__(self, N=1000, T=1, zf_model=None, zb_model=None):
+        super().__init__(N, T, zf_model, zb_model)
 
     def sde_coeff(self, t, x):
         f = -0.5 * x

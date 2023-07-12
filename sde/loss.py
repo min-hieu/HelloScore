@@ -19,15 +19,26 @@ def sample_e(noise_type, x):
 
 def get_div_approx(y, x, noise_type):
     e = sample_e(noise_type, x)
-    e_dydx = torch.autograd.grad(y, x, e, create_graph=True)[0]
+    e_dydx = torch.autograd.grad(y, x, e, retain_graph=True, create_graph=True)[0]
     div_y = e_dydx * e
     return div_y
 
-
 def get_div_exact(y, x):
-    # TODO
-    pass
+    assert x.requires_grad
 
+    div = torch.zeros(x.shape[0]).to(x)
+    for i in range(x.shape[1]):
+        H_i = torch.autograd.grad(y[:, i].sum(), x, create_graph=True)[0]
+        div += H_i[:, i]
+    return div
+
+def get_div(y, x, method='approx', approx_dist='gaussian'):
+    if method == 'approx':
+        return get_div_approx(y,x,approx_dist)
+    elif method == 'exact':
+        return get_div_exact(y,x)
+    else:
+        raise Exception('undefined method')
 
 class DSMLoss():
 
@@ -50,21 +61,20 @@ class DSMLoss():
 
 class ISMLoss():
 
-    def __init__(self, alpha: float, diff_weight: bool):
-        self.alpha       = alpha
+    def __init__(self):
+        pass
 
-    def __call__(self, t, x, model, target, diff_sq):
+    def __call__(self, t, x, model):
         x.requires_grad = True
         y_hat = model(t, x)
-        div_y_hat = get_div_approx(y_hat, x, 'gaussian')
+        div_y_hat = get_div(y_hat, x, 'exact')
         loss = 0.5 * torch.norm(y_hat)**2 + div_y_hat
-        x.requires_grad = False
 
         loss = loss.mean()
         return loss
 
 
-class SBNLLJointLoss():
+class SBJLoss():
 
     def __init__(self):
         pass
@@ -74,10 +84,11 @@ class SBNLLJointLoss():
         div_gzb = get_div_approx(zb, xf, 'gaussian')
         loss = 0.5 * (zf+zb)**2 + div_gzb
         loss = (loss * sb.dt) / xf
-        loss =
+
+        return loss
 
 
-class SBNLLAlterLoss():
+class SBALoss():
 
     def __init__(self):
         pass
