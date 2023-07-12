@@ -64,7 +64,7 @@ From these facts, we can directly sample from the unknown distribution by
 [Yang Song et al. (2021)](https://arxiv.org/abs/2011.13456) derived the likelihood training scheme
 for learning the reverse process. In summary, the reverse process for any SDE given above is
 of the form
-$$d\mathbf{X}_t = [f(t,\mathbf{X}_t)dt - G(t)^2\nabla_x\log p_t(\mathbf{X}_t)] + G(t)d\bar{\mathbf{B}}_t$$
+$$d\mathbf{X}_t = [f(t,\mathbf{X}_t) - G(t)^2\nabla_x\log p_t(\mathbf{X}_t)]dt + G(t)d\bar{\mathbf{B}}_t$$
 where $\bar{\mathbf{B}}_t$ is the reverse brownian noise. The only unknown term is the score function
 $\nabla_x\log p_t(\mathbf{X}_t)$, which we will approximate with a Neural Network. One main difference
 between SGM and other generative models is that they generate iteratively during the sampling process.
@@ -179,11 +179,11 @@ of the marginal probabillity. Therefore, we have to run the simulation process. 
 To evaluate your performance, we compute the chamfer distance (CD) and earth mover distance (EMD) between the target and generated point cloud.
 Your method should be on par or better than the following metrics. For this task, you can use **ANY** variations, even ones that were **NOT** mentioned.
 
-| target distribution | CD | EMD |
-|---------------------|----|-----|
-| moon                |    |     |
-| swiss-roll          |    |     |
-| circle              |    |     |
+| target distribution |    CD    |
+|---------------------|----------|
+| moon                |          |
+| swiss-roll          |  0.1975  |
+| circle              |          |
 
 #### 5. [Coming Soon] Schrödinger Bridge (Optional)
 One restriction to the typical diffusion processes are that they requires the prior to be easy to sample (gaussian, uniform, etc.). 
@@ -193,10 +193,46 @@ define a diffusion (bridge) that map between the Moon dataset and the swiss roll
 
 Like any diffusion process, there are many ways to learn the Schrödinger Bridge. This section focus on the work presented in 
 
-## Task 2: Image Diffusion [Coming Soon]
+## Task 2: Image Diffusion 
+In this task, we will play with diffusion models to generate 2D images. We first look into some background of DDPM and then dive into DDPM in a code level.
 
-## Task 3: Jump Diffusion [Coming Soon] (Optional)
+### Background
+From the perspective of SDE, SGM and DDPM are the same models with only different parameterizations. As there are forward and reverse processes in SGM, the forward process, or called _diffusion process_, of DDPM is fixed to a Markov chain that gradually adds Gaussian noise to the data:
 
+$$ q(\mathbf{x}\_{1:T} | \mathbf{x}_0) := \prod\_{t=1}^T q(\mathbf{x}_t | \mathbf{x}\_{t-1}), \quad q(\mathbf{x}_t | \mathbf{x}\_{t-1}) := \mathcal{N} (\mathbf{x}_t; \sqrt{1 - \beta_t} \mathbf{x}\_{t-1}, \beta_t \mathbf{I}).$$
+
+
+Thanks to a nice property of a Gaussian distribution, one can sample $\mathbf{x}_t$ at an arbitrary timestep $t$ from real data $\mathbf{x}_0$ in closed form:
+
+$$q(\mathbf{x}_t | \mathbf{x}_0) = \mathcal{N}(\mathbf{x}_t ; \sqrt{\bar{\alpha}_t} \mathbf{x}_0, (1 - \bar{\alpha}_t) \mathbf{I}) $$
+
+where $\alpha\_t := 1 - \beta\_t$ and $\bar{\alpha}_t := \prod$ $\_{s=1}^T \alpha_s$.
+
+Given the diffusion process, we want to model the _reverse process_ that gradually denoises white Gaussian noise $\mathbf{x}_T \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$ to sample real data. It is also defined as a Markov chain with learned Gaussian transitions:
+
+$$p\_\theta(\mathbf{x}\_{0:T}) := p(\mathbf{x}_T) \prod\_{t=1}^T p\_\theta(\mathbf{x}\_{t-1} | \mathbf{x}_t), \quad p\_\theta(\mathbf{x}\_{t-1} | \mathbf{x}_t) := \mathcal{N}(\mathbf{x}\_{t-1}; \mathbf{\boldsymbol{\mu}}\_\theta (\mathbf{x}_t, t), \boldsymbol{\Sigma}\_\theta (\mathbf{x}_t, t)).$$
+ 
+To learn this reverse process, we set an objective function that minimizes KL divergence between $p_\theta(\mathbf{x}\_{t-1} | \mathbf{x}_t)$ and $q(\mathbf{x}\_{t-1} | \mathbf{x}_t, \mathbf{x}_0)$ which is tractable when conditioned on $\mathbf{x}_0$:
+
+$$\mathcal{L} = \mathbb{E}_q \left[ \sum\_{t > 1} D\_{\text{KL}}( q(\mathbf{x}\_{t-1} | \mathbf{x}_t, \mathbf{x}_0) \Vert p\_\theta ( \mathbf{x}\_{t-1} | \mathbf{x}_t)) \right]$$ 
+
+Refer to [the original paper](https://arxiv.org/abs/2006.11239) or our PPT material for more details.
+
+As a parameterization of DDPM, the authors set $\boldsymbol{\Sigma}\_\theta(\mathbf{x}_t, t) = \sigma_t^2 \mathbf{I}$ to untrained time dependent constants, and they empirically found that predicting noise injected to data by a noise prediction network $\epsilon\_\theta$ is better than learning the mean function $\boldsymbol{\mu}\_\theta$.
+
+In short, the simplified objective function of DDPM is defined as follows:
+
+$$ \mathcal{L}\_{\text{simple}} := \mathbb{E}\_{t,\mathbf{x}_0,\boldsymbol{\epsilon}} [ \Vert \boldsymbol{\epsilon} - \boldsymbol{\epsilon}\_\theta( \mathbf{x}\_t(\mathbf{x}_0, t), t) \Vert^2  ],$$
+
+where $\mathbf{x}_t (\mathbf{x}_0, t) = \sqrt{\bar{\alpha}_t}\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t} \boldsymbol{\epsilon}$ and $\boldsymbol{\epsilon} \sim \mathcal{N}(0, \mathbf{I})$.
+
+#### Sampling
+
+Once we train the noise prediction network $\boldsymbol{\epsilon}\_\theta$, we can run sampling by gradually denoising white Gaussian noise. The algorithm of the DDPM  sampling is shown below:
+
+<p align="center">
+  <img width="480" alt="image" src="https://github.com/min-hieu/HelloScore/assets/37788686/0722ab08-13cf-4247-8d31-0037875cd71b">
+</p>
 
 ## Resources
 - [[paper](https://arxiv.org/abs/2011.13456)] Score-Based Generative Modeling through Stochastic Differential Equations
@@ -212,3 +248,5 @@ Like any diffusion process, there are many ways to learn the Schrödinger Bridge
 - [[blog](https://lilianweng.github.io/posts/2021-07-11-diffusion-models/)] What is Diffusion Model?
 - [[blog](https://yang-song.net/blog/2021/score/)] Generative Modeling by Estimating Gradients of the Data Distribution
 - [[lecture](https://youtube.com/playlist?list=PLCf12vHS8ONRpLNVGYBa_UbqWB_SeLsY2)] Charlie's Playlist on Diffusion Processes
+- [[slide](./assets/summary_of_DDPM_and_DDIM.pdf)] Juil's presentation slide of DDIM
+
