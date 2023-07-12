@@ -7,7 +7,7 @@ import torch.nn as nn
 
 class BaseScheduler(nn.Module):
     def __init__(
-        self, num_train_timesteps: int, beta_1: float, beta_T: float, mode="linear"
+        self, num_train_timesteps: int = 1000, beta_1: float = 1e-4, beta_T: float = 0.02, mode="linear"
     ):
         super().__init__()
         self.num_train_timesteps = num_train_timesteps
@@ -25,8 +25,9 @@ class BaseScheduler(nn.Module):
         else:
             raise NotImplementedError(f"{mode} is not implemented.")
 
-        alphas = 1 - betas
-        alphas_cumprod = torch.cumprod(alphas, dim=0)
+        # TODO: Compute alphas and alphas_cumprod
+        # alphas and alphas_cumprod correspond to $\alpha$ and $\bar{\alpha}$ in the DDPM paper (https://arxiv.org/abs/2006.11239).
+        alphas = alphas_cumprod = betas
 
         self.register_buffer("betas", betas)
         self.register_buffer("alphas", alphas)
@@ -55,23 +56,26 @@ class DDPMScheduler(BaseScheduler):
         sigma_type="small",
     ):
         super().__init__(num_train_timesteps, beta_1, beta_T, mode)
-
+    
+        # sigmas correspond to $\sigma_t$ in the DDPM paper.
         self.sigma_type = sigma_type
         if sigma_type == "small":
+            # when $\sigma_t^2 = \tilde{\beta}_t$.
             alphas_cumprod_t_prev = torch.cat(
                 [torch.tensor(1.0), self.alphas_cumprod[-1:]]
             )
             sigmas = (
                 (1 - alphas_cumprod_t_prev) / (1 - self.alphas_cumprod) * self.betas
-            )
+            ) ** 0.5
         elif sigma_type == "large":
-            sigmas = self.betas
+            # when $\sigma_t^2 = \beta_t$.
+            sigmas = self.betas ** 0.5
 
         self.register_buffer("sigmas", sigmas)
 
     def step(self, sample: torch.Tensor, timestep: int, noise_pred: torch.Tensor):
         """
-        One step denoising function: x_t -> x_{t-1}.
+        One step denoising function of DDPM: x_t -> x_{t-1}.
 
         Input:
             sample (`torch.Tensor [B,C,H,W]`): samples at arbitrary timestep t.
@@ -80,16 +84,11 @@ class DDPMScheduler(BaseScheduler):
         Ouptut:
             sample_prev (`torch.Tensor [B,C,H,W]`): one step denoised sample. (= x_{t-1})
         """
-        alpha_t = self.alphas[timestep]
-        beta_t = self.betas[timestep]
-        alpha_prod_t = self.alphas_cumprod[timestep]
-        sigma_t = self.sigmas[timestep]
 
-        c0 = 1 / torch.sqrt(alpha_t)
-        c1 = beta_t / torch.sqrt(1 - alpha_prod_t)
+        # TODO: Implement the DDPM's one step denoising function.
+        # Refer to Algorithm 2 in the DDPM paper (https://arxiv.org/abs/2006.11239).
 
-        z = torch.randn_like(sample) if timestep > 1 else 0
-        sample_prev = c0 * (sample - c1 * noise_pred) + sigma_t * z
+        sample_prev = sample
 
         return sample_prev
 
@@ -100,7 +99,7 @@ class DDPMScheduler(BaseScheduler):
         noise: Optional[torch.Tensor] = None,
     ):
         """
-        Forward function in a forward Markov chain, i.e., q(x_t | x_0).
+        A forward pass of a Markov chain, i.e., q(x_t | x_0).
 
         Input:
             sample (`torch.Tensor [B,C,H,W]`): samples from a real data distribution q(x_0).
@@ -110,24 +109,11 @@ class DDPMScheduler(BaseScheduler):
             x_noisy: (`torch.Tensor [B,C,H,W]`): noisy samples
             noise: (`torch.Tensor [B,C,H,W]`): injected noise.
         """
-        device = original_sample.device
+        
+        # TODO: Implement the function that samples $\mathbf{x}_t$ from $\mathbf{x}_0$.
+        # Refer to Equation 4 in the DDPM paper (https://arxiv.org/abs/2006.11239).
 
-        alphas_cumprod = self.alphas_cumprod.to(device)
-        timesteps = timesteps.to(device)
-        if noise is None:
-            noise = torch.randn_like(original_sample)
-
-        alpha_prod = alphas_cumprod[timesteps]
-        alpha_prod = alpha_prod.flatten()
-        while len(alpha_prod.shape) < len(original_sample.shape):
-            alpha_prod = alpha_prod.unsqueeze(-1)
-
-        sqrt_alpha_prod = torch.sqrt(alpha_prod)
-        one_minus_sqrt_alpha_prod = torch.sqrt(1 - alpha_prod)
-
-        noisy_sample = (
-            sqrt_alpha_prod * original_sample + one_minus_sqrt_alpha_prod * noise
-        )
+        noisy_sample = noise = original_sample
 
         return noisy_sample, noise
 
@@ -136,12 +122,12 @@ class DDIMScheduler(BaseScheduler):
     def __init__(self, num_train_timesteps, beta_1, beta_T, mode="linear"):
         super().__init__(num_train_timesteps, beta_1, beta_T, mode)
 
-        one = torch.tensor(1.0)
-        self.register_buffer("alpha_prod_0", one)
-
     def set_timesteps(
         self, num_inference_timesteps: int, device: Union[str, torch.device] = None
     ):
+        """
+        Sets the timesteps of a diffusion Markov chain. It is for accelerated generation process (Sec. 4.2) in the DDIM paper (https://arxiv.org/abs/2010.02502).
+        """
         if num_inference_timesteps > self.num_train_timesteps:
             raise ValueError(
                 f"num_inference_timesteps ({num_inference_timesteps}) cannot exceed self.num_train_timesteps ({self.num_train_timesteps})"
@@ -165,75 +151,20 @@ class DDIMScheduler(BaseScheduler):
         noise_pred: torch.Tensor,
         eta: float = 0.0,
     ):
-        timestep_prev = (
-            timestep - self.num_train_timesteps // self.num_inference_timesteps
-        )
-        alpha_prod_t = self.alphas_cumprod[timestep]
-        alpha_prod_t_prev = (
-            self.alphas_cumprod[timestep_prev]
-            if timestep_prev >= 0
-            else self.alpha_prod_0
-        )
+        """
+        One step denoising function of DDIM: $x_{\tau_i}$ -> $x_{\tau_{i-1}}$.
 
-        sigma_t_square = (
-            (1 - alpha_prod_t_prev)
-            / (1 - alpha_prod_t)
-            * (1 - alpha_prod_t / alpha_prod_t_prev)
-            * eta
-        )
-        sigma_t = sigma_t_square ** (0.5)
+        Input:
+            sample (`torch.Tensor [B,C,H,W]`): samples at arbitrary timestep $\tau_i$.
+            timestep (`int`): current timestep in a reverse process.
+            noise_pred (`torch.Tensor [B,C,H,W]`): predicted noise from a learned model.
+            eta (float): correspond to η in DDIM which controls the stochasticity of a reverse process.
+        Ouptut:
+            sample_prev (`torch.Tensor [B,C,H,W]`): one step denoised sample. (= $x_{\tau_{i-1}}$)
+        """
+        # TODO: Implement the DDIM's one step denoising function.
+        # Refer to Equation 12 in the DDIM paper (https://arxiv.org/abs/2010.02502).
 
-        pred_original_sample = (
-            sample - torch.sqrt(1 - alpha_prod_t) * noise_pred
-        ) / torch.sqrt(alpha_prod_t)
-
-        direction_to_sample = (
-            torch.sqrt(1 - alpha_prod_t_prev - sigma_t_square) * noise_pred
-        )
-
-        z = torch.randn_like(sample)
-        random_noise = sigma_t * z
-
-        sample_prev = (
-            torch.sqrt(alpha_prod_t_prev) * pred_original_sample
-            + direction_to_sample
-            + random_noise
-        )
+        sample_prev = sample
 
         return sample_prev
-
-    def add_noise(
-        self,
-        original_sample,
-        timesteps: torch.IntTensor,
-        noise: Optional[torch.Tensor] = None,
-    ):
-        """
-        Input:
-            sample: [B,C,H,W]
-            timesteps: [B]
-            noise: [B,C,H,W]
-        Output:
-            x_noisy: [B,C,H,W]
-            noise: [B,C,H,W]
-        """
-        device = original_sample.device
-
-        alphas_cumprod = self.alphas_cumprod.to(device)
-        timesteps = timesteps.to(device)
-        if noise is None:
-            noise = torch.randn_like(original_sample)
-
-        alpha_prod = alphas_cumprod[timesteps]
-        alpha_prod = alpha_prod.flatten()
-        while len(alpha_prod.shape) < len(original_sample.shape):
-            alpha_prod = alpha_prod.unsqueeze(-1)
-
-        sqrt_alpha_prod = torch.sqrt(alpha_prod)
-        one_minus_sqrt_alpha_prod = torch.sqrt(1 - alpha_prod)
-
-        noisy_sample = (
-            sqrt_alpha_prod * original_sample + one_minus_sqrt_alpha_prod * noise
-        )
-
-        return noisy_sample, noise

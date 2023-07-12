@@ -146,6 +146,7 @@ class AFHQDataset(torch.utils.data.Dataset):
         self.max_num_images_per_cat = max_num_images_per_cat
 
         categories = os.listdir(os.path.join(root, split))
+        self.num_classes = len(categories)
 
         fnames, labels = [], []
         for idx, cat in enumerate(sorted(categories)):
@@ -153,7 +154,7 @@ class AFHQDataset(torch.utils.data.Dataset):
             cat_fnames = listdir(category_dir)
             cat_fnames = sorted(cat_fnames)[:self.max_num_images_per_cat]
             fnames += cat_fnames
-            labels += [idx] * len(cat_fnames)
+            labels += [idx + 1] * len(cat_fnames) # label 0 is for null class.
 
         self.fnames = fnames
         self.labels = labels
@@ -161,6 +162,7 @@ class AFHQDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         img = Image.open(self.fnames[idx]).convert("RGB")
         label = self.labels[idx]
+        assert label > 0
         if self.transform is not None:
             img = self.transform(img)
 
@@ -171,11 +173,12 @@ class AFHQDataset(torch.utils.data.Dataset):
 
 
 class AFHQDataModule(CIFAR10DataModule):
-    def __init__(self, root: str = "data", batch_size: int = 32, num_workers: int = 4):
+    def __init__(self, root: str = "data", batch_size: int = 32, num_workers: int = 4, max_num_images_per_cat=1000):
         self.root = root
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.afhq_root = os.path.join(root, "afhq")
+        self.max_num_images_per_cat = max_num_images_per_cat
 
         if not os.path.exists(self.afhq_root):
             print(f"{self.afhq_root} is empty. Downloading AFHQ dataset...")
@@ -191,8 +194,10 @@ class AFHQDataModule(CIFAR10DataModule):
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
             ]
         )
-        self.train_ds = AFHQDataset(self.afhq_root, "train", self.transform)
-        self.val_ds = AFHQDataset(self.afhq_root, "val", self.transform)
+        self.train_ds = AFHQDataset(self.afhq_root, "train", self.transform, max_num_images_per_cat=self.max_num_images_per_cat)
+        self.val_ds = AFHQDataset(self.afhq_root, "val", self.transform, max_num_images_per_cat=self.max_num_images_per_cat)
+
+        self.num_classes = self.train_ds.num_classes
 
     def _download_dataset(self):
         URL = "https://www.dropbox.com/s/t9l9o3vsx2jai3z/afhq.zip?dl=0"

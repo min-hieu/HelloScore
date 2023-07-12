@@ -47,7 +47,7 @@ def main(args):
         ds_module = CelebADataModule("./data", batch_size=config.batch_size, num_workers=4)
         image_resolution = 64
     elif config.dataset == "afhq":
-        ds_module = AFHQDataModule("./data", batch_size=config.batch_size, num_workers=4)
+        ds_module = AFHQDataModule("./data", batch_size=config.batch_size, num_workers=4, max_num_images_per_cat=config.max_num_images_per_cat)
         image_resolution = 64
     else:
         raise ValueError(f"{config.dataset} is an invalid dataset name.")
@@ -67,7 +67,10 @@ def main(args):
         ch_mult=[1, 2, 2, 2],
         attn=[1],
         num_res_blocks=4,
-        dropout=0.1,
+        dropout=0.1, 
+        use_cfg=args.use_cfg, 
+        cfg_dropout=args.cfg_dropout, 
+        num_classes=getattr(ds_module, "num_classes", None)
     )
 
     ddpm = Diffusion(net, var_scheduler)
@@ -97,8 +100,8 @@ def main(args):
                 ddpm.train()
 
             img, label = next(train_it)
-            img = img.to(config.device)
-            loss = ddpm.get_loss(img)
+            img, label = img.to(config.device), label.to(config.device)
+            loss = ddpm.get_loss(img, class_label=label)
             pbar.set_description(f"Loss: {loss.item():.4f}")
 
             optimizer.zero_grad()
@@ -120,6 +123,9 @@ if __name__ == "__main__":
     parser.add_argument("--warmup_steps", type=int, default=200)
     parser.add_argument("--log_interval", type=int, default=50)
     parser.add_argument("--dataset", type=str, choices=["cifar10", "cifar100", "celeba", "afhq"], default="cifar10")
+    parser.add_argument("--max_num_images_per_cat", type=int, default=1000, help="max number of images per category for AFHQ dataset")
+    parser.add_argument("--use_cfg", action="store_true")
+    parser.add_argument("--cfg_dropout", type=float, default=0.1, help="random dropout rate of making class label null")
 
     args = parser.parse_args()
     main(args)
