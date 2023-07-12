@@ -21,10 +21,10 @@
 
 - [Task 0](#task-0-introduction)
 - [Task 1](#task-1-very-simple-sgm-pipeline-with-delicious-swiss-roll)
-  - [1.1](#1-forward-and-reverse-process) [(a)](#a-ou-process), [(b)](#b-vpsde--vesde)
-  - [1.2](#2-training)
-  - [1.3](#3-sampling)
-  - [1.4](#4-evaluation)
+  - [Task 1.1](#1-forward-and-reverse-process) [(a)](#a-ou-process), [(b)](#b-vpsde--vesde)
+  - [Task 1.2](#2-training)
+  - [Task 1.3](#3-sampling)
+  - [Task 1.4](#4-evaluation)
 - [Task 2](#task-2-image-diffusion)
 
 </details>
