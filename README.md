@@ -40,13 +40,13 @@ pip install -r requirements.txt
 ```
 .
 ├── requirements.txt          <--- required packages 
-├── HelloScoreMinimal.ipynb   <--- main code 
+├── HelloScore.ipynb          <--- main code 
 ├── dataset.py                <--- Define dataset (Swiss-roll, moon, gaussians, etc.)
 ├── loss.py                   <--- (TODO) Define Training Objective 
 ├── network.py                <--- (TODO) Define Network Architecture 
 ├── sampling.py               <--- (TODO) Define Discretization and Sampling 
 ├── sde.py                    <--- (TODO) Define SDE Processes 
-└── train_utils.py            <--- (TODO) Define Training Loop 
+└── train.py                  <--- (TODO) Define Training Loop 
 ```
 
 ## Tutorial Tips
