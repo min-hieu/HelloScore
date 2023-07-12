@@ -181,9 +181,7 @@ Your method should be on par or better than the following metrics. For this task
 
 | target distribution |    CD    |
 |---------------------|----------|
-| moon                |          |
 | swiss-roll          |  0.1975  |
-| circle              |          |
 
 #### 5. [Coming Soon] Schrödinger Bridge (Optional)
 One restriction to the typical diffusion processes are that they requires the prior to be easy to sample (gaussian, uniform, etc.). 
