@@ -234,6 +234,30 @@ Once we train the noise prediction network $\boldsymbol{\epsilon}\_\theta$, we c
   <img width="480" alt="image" src="https://github.com/min-hieu/HelloScore/assets/37788686/0722ab08-13cf-4247-8d31-0037875cd71b">
 </p>
 
+#### Code Structure
+
+```
+image_diffusion/
+├── dataset.py                <--- Ready-to-use AFHQ dataset code
+├── train.py                  <--- DDPM training code 
+├── sampling.py               <--- Image sampling code
+├── ddpm.py                   <--- DDPM high-level wrapper code
+├── module.py                 <--- Basic modules of a noise prediction network
+├── network.py                <--- (TODO) Define a network architecture 
+└── scheduler.py              <--- (TODO) Define various variance schedulers
+```
+
+### TODO
+
+We will generate 64x64 animal images using DDPM with AFHQ dataset. We provide skeleton code in wihch you need to fill in missing parts.
+You need to construct a noise prediction network according to the provided network diagram and implement the DDPM variance scheduler.
+After filling in the missing parts, you can train a model by `python train.py` and generate & save images by 
+
+```
+python sampling.py --ckpt_path ${CKPT_PATH} --save_dir ${SAVE_DIR_PATH}
+```
+
+
 ## Resources
 - [[paper](https://arxiv.org/abs/2011.13456)] Score-Based Generative Modeling through Stochastic Differential Equations
 - [[paper](https://arxiv.org/abs/2006.09011)] Improved Techniques for Training Score-Based Generative Models
