@@ -26,6 +26,7 @@
   - [Task 1.3](#3-sampling)
   - [Task 1.4](#4-evaluation)
 - [Task 2](#task-2-image-diffusion)
+- [Task 3](#task-3-downstream-tasks-of-ddpm)
 
 </details>
 
@@ -266,12 +267,25 @@ Once we train the noise prediction network $\boldsymbol{\epsilon}\_\theta$, we c
   <img width="480" alt="image" src="https://github.com/min-hieu/HelloScore/assets/37788686/0722ab08-13cf-4247-8d31-0037875cd71b">
 </p>
 
+(DDIM)[https://arxiv.org/abs/2010.02502] proposed a way to speed up the sampling using the same pre-trained DDPM. The reverse step of DDIM is below:
+
+<p align="center">
+  <img width="784" alt="image" src="https://github.com/min-hieu/HelloScore/assets/37788686/dad1fb63-9f22-48e6-b4d6-0fabd7b33873">
+</p>
+
+Note that $\alpha_t$ notation in DDIM corresponds to $\bar{\alpha}_t$ in DDPM paper.
+
+Please refer to DDIM paper for more details.
+
 ### TODO
 
 In this task, we will generate $64\times64$ animal images using DDPM with AFHQ dataset. We provide most of code only except for variance scheduling code. You need to implement DDPM scheduler and DDIM scheduler in `scheduler.py`. After implementing the schedulers, train a model by `python train.py` and sample & save images by
 ```
 python sampling.py --ckpt_path ${CKPT_PATH} --save_dir ${SAVE_DIR_PATH}
 ```
+
+We recommend starting the training as soon as possible since the training would take about half of a day. Also, DDPM scheduler is really slow. We recommend **implementing DDIM scheduler first** and set `inference timesteps` 20~50 which is enough to get high-quality images with much less sampling time.
+
 
 As an evaluation, measure FID score using the pre-trained classifier network we provide:
 
