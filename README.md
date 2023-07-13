@@ -39,14 +39,18 @@ pip install -r requirements.txt
 ## Code Structure
 ```
 .
-├── image_diffusion (Task 2)
+├── image_diffusion (Task 2 & 3)
 │   ├── dataset.py                <--- Ready-to-use AFHQ dataset code
 │   ├── train.py                  <--- DDPM training code
 │   ├── sampling.py               <--- Image sampling code
 │   ├── ddpm.py                   <--- DDPM high-level wrapper code
 │   ├── module.py                 <--- Basic modules of a noise prediction network
-│   ├── network.py                <--- (TODO) Define a network architecture
-│   └── scheduler.py              <--- (TODO) Define various variance schedulers
+│   ├── network.py                <--- Noise prediction network
+│   ├── network.py                <--- Noise prediction network
+│   ├── scheduler.py              <--- (TODO) Define variance schedulers
+│   ├── inpainting.ipynb          <--- (TODO) Implement image inpainting code
+│   ├── classifier_guidance.ipynb <--- (TODO) Implement classifier guidance sampling code
+│   └── cfg.ipynb                 <--- (TODO) Implement classifier-free guidance sampling code
 └── sde_todo        (Task 1)
     ├── HelloScore.ipynb          <--- main code
     ├── dataset.py                <--- Define dataset (Swiss-roll, moon, gaussians, etc.)
@@ -67,6 +71,7 @@ the resources in this order:
 2. [[paper](https://arxiv.org/abs/2011.13456)] Score-Based Generative Modeling through Stochastic Differential Equations
 3. [[blog](https://lilianweng.github.io/posts/2021-07-11-diffusion-models/)] Lilian Wang's "What is Diffusion Model?"
 4. [[paper](https://arxiv.org/abs/2006.11239)] Denoising Diffusion Probabilistic Models
+5. [[slide](./assets/summary_of_DDPM_and_DDIM.pdf)] Summary of DDPM and DDIM
 
 ## Task 0: Introduction
 We know that a stochastic differential equation has the following form:
@@ -263,13 +268,36 @@ Once we train the noise prediction network $\boldsymbol{\epsilon}\_\theta$, we c
 
 ### TODO
 
-We will generate $64\times64$ animal images using DDPM with AFHQ dataset. We provide skeleton code in wihch you need to fill in missing parts.
-You need to construct a noise prediction network according to the provided network diagram and implement the DDPM variance scheduler.
-After filling in the missing parts, you can train a model by `python train.py` and generate & save images by
-
+In this task, we will generate $64\times64$ animal images using DDPM with AFHQ dataset. We provide most of code only except for variance scheduling code. You need to implement DDPM scheduler and DDIM scheduler in `scheduler.py`. After implementing the schedulers, train a model by `python train.py` and sample & save images by
 ```
 python sampling.py --ckpt_path ${CKPT_PATH} --save_dir ${SAVE_DIR_PATH}
 ```
+
+As an evaluation, measure FID score using the pre-trained classifier network we provide:
+
+```
+python measure_fid.py /path/to/sampled/image/directory
+```
+_**Success condition**_: Achieve FID score lower than `20`.
+
+
+## Task 3: Downstream tasks of DDPM
+
+Now, we will explore how powerful DDPM is in various downstream tasks:
+
+1. Image inpainting ([Repaint](https://arxiv.org/abs/2201.09865))
+2. Classifier guidance sampling ([ADM](https://arxiv.org/abs/2105.05233))
+3. Classifier-free guidance sampling ([CFG](https://arxiv.org/abs/2207.12598))
+
+### TODO
+Fill in missing parts in jupyter notebooks, `inpainting.ipynb`, `classifier_guidance.ipynb` and `cfg.ipynb`. 
+Report FID scores with 500 result images and the same validation set used in Task 2.
+
+#### [Optional] Improving image inpainting by MCG
+
+A recent paper [Improving Diffusion Models for Inverse Problems using Manifold Constraints](https://arxiv.org/abs/2206.00941), also known as MCG, proposed a way to improve the solving various inverse problems, such as image inpainting, using DDPMs. In a high-level idea, in the reverse process, it takes an additional gradient descent towards a subspace of a latent space satisfying a given partial observation. Refer to the [original paper](https://arxiv.org/abs/2206.00941) for more details and implement MCG-based image inpainting code.
+
+Compare image inpainting results between MCG and the baseline.
 
 ## Resources
 - [[paper](https://arxiv.org/abs/2011.13456)] Score-Based Generative Modeling through Stochastic Differential Equations
