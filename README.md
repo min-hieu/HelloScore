@@ -4,7 +4,7 @@
   </h1>
   <div align=center>
     <div align=center>
-      <b>Nguyen Minh Hieu* &emsp; Juil Koo*</b>
+      <b>Nguyen Minh Hieu &emsp; Juil Koo</b>
     </div>
     <div align=center>
       <p align=center>{hieuristics, 63days} [at] kaist.ac.kr</p>
