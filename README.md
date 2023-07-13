@@ -48,7 +48,6 @@ pip install -r requirements.txt
 │   ├── network.py                <--- (TODO) Define a network architecture
 │   └── scheduler.py              <--- (TODO) Define various variance schedulers
 └── sde_todo        (Task 1)
-    ├── HelloScore.ipynb
     ├── HelloScore.ipynb          <--- main code
     ├── dataset.py                <--- Define dataset (Swiss-roll, moon, gaussians, etc.)
     ├── loss.py                   <--- (TODO) Define Training Objective
