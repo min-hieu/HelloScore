@@ -39,21 +39,30 @@ pip install -r requirements.txt
 ## Code Structure
 ```
 .
-├── requirements.txt          <--- required packages 
-├── HelloScore.ipynb          <--- main code 
-├── dataset.py                <--- Define dataset (Swiss-roll, moon, gaussians, etc.)
-├── loss.py                   <--- (TODO) Define Training Objective 
-├── network.py                <--- (TODO) Define Network Architecture 
-├── sampling.py               <--- (TODO) Define Discretization and Sampling 
-├── sde.py                    <--- (TODO) Define SDE Processes 
-└── train.py                  <--- (TODO) Define Training Loop 
+├── image_diffusion (Task 2)
+│   ├── dataset.py                <--- Ready-to-use AFHQ dataset code
+│   ├── train.py                  <--- DDPM training code
+│   ├── sampling.py               <--- Image sampling code
+│   ├── ddpm.py                   <--- DDPM high-level wrapper code
+│   ├── module.py                 <--- Basic modules of a noise prediction network
+│   ├── network.py                <--- (TODO) Define a network architecture
+│   └── scheduler.py              <--- (TODO) Define various variance schedulers
+└── sde_todo        (Task 1)
+    ├── HelloScore.ipynb
+    ├── HelloScore.ipynb          <--- main code
+    ├── dataset.py                <--- Define dataset (Swiss-roll, moon, gaussians, etc.)
+    ├── loss.py                   <--- (TODO) Define Training Objective
+    ├── network.py                <--- (TODO) Define Network Architecture
+    ├── sampling.py               <--- (TODO) Define Discretization and Sampling
+    ├── sde.py                    <--- (TODO) Define SDE Processes
+    └── train.py                  <--- (TODO) Define Training Loop
 ```
 
 ## Tutorial Tips
 
 Implementation of Diffusion Models is typically very simple once you understand the theory.
-So, to learn the most from this tutorial, it's highly recommended to check out the details in the 
-related papers and understand the equations **BEFORE** you start the tutorial. You can check out 
+So, to learn the most from this tutorial, it's highly recommended to check out the details in the
+related papers and understand the equations **BEFORE** you start the tutorial. You can check out
 the resources in this order:
 1. [[blog](https://min-hieu.github.io/blogs/blogs/brownian/)] Charlie's "Brownian Motion and SDE"
 2. [[paper](https://arxiv.org/abs/2011.13456)] Score-Based Generative Modeling through Stochastic Differential Equations
@@ -63,9 +72,9 @@ the resources in this order:
 ## Task 0: Introduction
 We know that a stochastic differential equation has the following form:
 $$d\mathbf{X}_t = f(t,\mathbf{X}_t)dt + G(t)d\mathbf{B}_t$$
-where $f$ and $G$ are the drift and diffusion coefficients respectively and $\mathbf{B}_t$ is the 
-standard Brownian noise. A popular SDE often used is called Ornstein-Uhlenbeck (OU) process 
-which is defined as 
+where $f$ and $G$ are the drift and diffusion coefficients respectively and $\mathbf{B}_t$ is the
+standard Brownian noise. A popular SDE often used is called Ornstein-Uhlenbeck (OU) process
+which is defined as
 $$d\mathbf{X}_t = -\mu \mathbf{X}_tdt + \sigma d\mathbf{B}_t$$
 Where $\mu, \sigma$ are constants. In this tutorial, we will set $\mu = \frac{1}{2}, \sigma = 1$.
 Score-based generative modelling (SGM) aims to sample from an unknown distribution of a given dataset.
@@ -94,7 +103,7 @@ between SGM and other generative models is that they generate iteratively during
 
 $\mathbf{X}_T = \mathbf{X}_0 e^{-\mu T} + \sigma \int_0^T e^{-\mu(T-t)} d\mathbf{B}_t$
 
-and you can use the fact that $d\mathbf{B}_t^2 = dt$, and $\mathbb{E}[\int_0^T f(t) d\mathbf{B}_t] = 0$ where $f(t)$ is any 
+and you can use the fact that $d\mathbf{B}_t^2 = dt$, and $\mathbb{E}[\int_0^T f(t) d\mathbf{B}_t] = 0$ where $f(t)$ is any
 deterministic function.
 
 ## Task 1: very simple SGM pipeline with delicious swiss-roll
@@ -103,16 +112,16 @@ A typical diffusion pipeline is divided into three components:
 2. [Training](#2-training)
 3. [Sampling](#3-sampling)
 
-In this task, we will look into each component one by one and implement them sequentially. 
-#### 1. Forward and Reverse Process  
+In this task, we will look into each component one by one and implement them sequentially.
+#### 1. Forward and Reverse Process
 <p align="center">
 <img width="364" alt="image" src="https://github.com/min-hieu/HelloScore/assets/53557912/70352400-ac68-4509-b648-f64adcc602bc">
 </p>
 
-Our first goal is to setup the forward and reverse processes. In the forward process, the final distribution should be 
-the prior distribution which is the standard normal distribution. 
+Our first goal is to setup the forward and reverse processes. In the forward process, the final distribution should be
+the prior distribution which is the standard normal distribution.
 #### (a) OU Process
-Following the formulation of the OU Process introduced in the previous section, complete the `TODO` in the 
+Following the formulation of the OU Process introduced in the previous section, complete the `TODO` in the
 `sde.py` and check if the final distribution approach unit gaussian as $t\rightarrow \infty$.
 
 <p align="center">
@@ -128,10 +137,10 @@ Following the formulation of the OU Process introduced in the previous section, 
 ```
 
 #### (b) VPSDE & VESDE
-It's mentioned by [Yang Song et al. (2021)](https://arxiv.org/abs/2011.13456) that the DDPM and SMLD are distretization of SDEs. 
+It's mentioned by [Yang Song et al. (2021)](https://arxiv.org/abs/2011.13456) that the DDPM and SMLD are distretization of SDEs.
 Implement this in the `sde.py` and check their mean and and std.
 
-*hint*: Although you can simulate the diffusion process through discretization, sampling with the explicit equation of the marginal probability $p_{t0}(\mathbf{X}_t \mid \mathbf{X}_0)$ is much faster. 
+*hint*: Although you can simulate the diffusion process through discretization, sampling with the explicit equation of the marginal probability $p_{t0}(\mathbf{X}_t \mid \mathbf{X}_0)$ is much faster.
 
 You should also obtain the following graphs for VPSDE and VESDE respectively
 <p align="center">
@@ -148,19 +157,19 @@ You should also obtain the following graphs for VPSDE and VESDE respectively
   What can you say about the differences between OU, VPSDE, VESDE?
 ```
 
-#### 2. Training  
+#### 2. Training
 The typical training objective of diffusion model uses **D**enoising **S**core **M**atching loss:
 
 $$f_{\theta^*} = \textrm{ argmin }  \mathbb{E} [||f_\theta(\mathbf{X}s) - \nabla p_{s0}(\mathbf{X}_s\mid \mathbf{X}_0)||^2] $$
 
 Where $f$ is the score prediction network with parameter $\theta^*$.
 Another popular training objective is **I**mplicit **S**core **M**atching loss which can be derived from DSM.
-One main different between ISM and DSM is that ISM doesn't require to compute the gradient but instead the divergence. 
-In certain cases where it is hard to compute gradient in the [domain of interest](https://arxiv.org/abs/2202.02763) or 
+One main different between ISM and DSM is that ISM doesn't require to compute the gradient but instead the divergence.
+In certain cases where it is hard to compute gradient in the [domain of interest](https://arxiv.org/abs/2202.02763) or
 when the problem [naturally contains divergence](https://openreview.net/pdf?id=nioAdKCEdXB), ISM is used.
 
-However, there are other training objectives with their different trade-offs (SSM, EDM, etc.). Highly recommend to checkout 
-[A Variational Perspective on Diffusion-based Generative Models and Score Matching](https://arxiv.org/abs/2106.02808) 
+However, there are other training objectives with their different trade-offs (SSM, EDM, etc.). Highly recommend to checkout
+[A Variational Perspective on Diffusion-based Generative Models and Score Matching](https://arxiv.org/abs/2106.02808)
 and [Elucidating the Design Space of Diffusion-Based Generative Models](https://arxiv.org/abs/2206.00364) for a more in-depth analysis of the recent training objectives.
 
 **TODO:**
@@ -172,9 +181,9 @@ and [Elucidating the Design Space of Diffusion-Based Generative Models](https://
 - implement the training loop in train_utils.py
 - (optional) implement SSMLoss in loss.py
 ```
-#### 3. Sampling  
-Finally, we can now use the trained score prediction network to sample from the swiss-roll dataset. Unlike the forward process, there is no analytical form 
-of the marginal probabillity. Therefore, we have to run the simulation process. Your final sampling should be close to the target distribution 
+#### 3. Sampling
+Finally, we can now use the trained score prediction network to sample from the swiss-roll dataset. Unlike the forward process, there is no analytical form
+of the marginal probabillity. Therefore, we have to run the simulation process. Your final sampling should be close to the target distribution
 **within 10000 training steps**. For this task, you are free to use **ANY** variations of diffusion process that **was mentioned** above.
 
 <p align="center">
@@ -200,14 +209,14 @@ Your method should be on par or better than the following metrics. For this task
 | swiss-roll          |  0.1975  |
 
 #### 5. [Coming Soon] Schrödinger Bridge (Optional)
-One restriction to the typical diffusion processes are that they requires the prior to be easy to sample (gaussian, uniform, etc.). 
-Schrödinger Bridge removes this limitation by making the forward process also learnable and allow a diffusion defined between **two** unknown distribution. 
-For example, with Schrödinger Bridge, you don't need to know the underlying distribution of the Moon dataset but you can still 
-define a diffusion (bridge) that map between the Moon dataset and the swiss roll as shown below. 
+One restriction to the typical diffusion processes are that they requires the prior to be easy to sample (gaussian, uniform, etc.).
+Schrödinger Bridge removes this limitation by making the forward process also learnable and allow a diffusion defined between **two** unknown distribution.
+For example, with Schrödinger Bridge, you don't need to know the underlying distribution of the Moon dataset but you can still
+define a diffusion (bridge) that map between the Moon dataset and the swiss roll as shown below.
 
-Like any diffusion process, there are many ways to learn the Schrödinger Bridge. This section focus on the work presented in 
+Like any diffusion process, there are many ways to learn the Schrödinger Bridge. This section focus on the work presented in
 
-## Task 2: Image Diffusion 
+## Task 2: Image Diffusion
 In this task, we will play with diffusion models to generate 2D images. We first look into some background of DDPM and then dive into DDPM in a code level.
 
 ### Background
@@ -225,10 +234,10 @@ where $\alpha\_t := 1 - \beta\_t$ and $\bar{\alpha}_t := \prod$ $\_{s=1}^T \alph
 Given the diffusion process, we want to model the _reverse process_ that gradually denoises white Gaussian noise $\mathbf{x}_T \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$ to sample real data. It is also defined as a Markov chain with learned Gaussian transitions:
 
 $$p\_\theta(\mathbf{x}\_{0:T}) := p(\mathbf{x}_T) \prod\_{t=1}^T p\_\theta(\mathbf{x}\_{t-1} | \mathbf{x}_t), \quad p\_\theta(\mathbf{x}\_{t-1} | \mathbf{x}_t) := \mathcal{N}(\mathbf{x}\_{t-1}; \mathbf{\boldsymbol{\mu}}\_\theta (\mathbf{x}_t, t), \boldsymbol{\Sigma}\_\theta (\mathbf{x}_t, t)).$$
- 
+
 To learn this reverse process, we set an objective function that minimizes KL divergence between $p_\theta(\mathbf{x}\_{t-1} | \mathbf{x}_t)$ and $q(\mathbf{x}\_{t-1} | \mathbf{x}_t, \mathbf{x}_0)$ which is tractable when conditioned on $\mathbf{x}_0$:
 
-$$\mathcal{L} = \mathbb{E}_q \left[ \sum\_{t > 1} D\_{\text{KL}}( q(\mathbf{x}\_{t-1} | \mathbf{x}_t, \mathbf{x}_0) \Vert p\_\theta ( \mathbf{x}\_{t-1} | \mathbf{x}_t)) \right]$$ 
+$$\mathcal{L} = \mathbb{E}_q \left[ \sum\_{t > 1} D\_{\text{KL}}( q(\mathbf{x}\_{t-1} | \mathbf{x}_t, \mathbf{x}_0) \Vert p\_\theta ( \mathbf{x}\_{t-1} | \mathbf{x}_t)) \right]$$
 
 Refer to [the original paper](https://arxiv.org/abs/2006.11239) or our PPT material for more details.
 
@@ -247,6 +256,16 @@ Once we train the noise prediction network $\boldsymbol{\epsilon}\_\theta$, we c
 <p align="center">
   <img width="480" alt="image" src="https://github.com/min-hieu/HelloScore/assets/37788686/0722ab08-13cf-4247-8d31-0037875cd71b">
 </p>
+
+### TODO
+
+We will generate 64x64 animal images using DDPM with AFHQ dataset. We provide skeleton code in wihch you need to fill in missing parts.
+You need to construct a noise prediction network according to the provided network diagram and implement the DDPM variance scheduler.
+After filling in the missing parts, you can train a model by `python train.py` and generate & save images by
+
+```
+python sampling.py --ckpt_path ${CKPT_PATH} --save_dir ${SAVE_DIR_PATH}
+```
 
 ## Resources
 - [[paper](https://arxiv.org/abs/2011.13456)] Score-Based Generative Modeling through Stochastic Differential Equations
