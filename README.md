@@ -163,9 +163,13 @@ $$f_{\theta^*} = \textrm{ argmin }  \mathbb{E} [||f_\theta(\mathbf{X}s) - \nabla
 
 Where $f$ is the score prediction network with parameter $\theta^*$.
 Another popular training objective is **I**mplicit **S**core **M**atching loss which can be derived from DSM.
-One main different between ISM and DSM is that ISM doesn't require to compute the gradient but instead the divergence.
-In certain cases where it is hard to compute gradient in the [domain of interest](https://arxiv.org/abs/2202.02763) or
-when the problem [naturally contains divergence](https://openreview.net/pdf?id=nioAdKCEdXB), ISM is used.
+One main different between ISM and DSM is that ISM doesn't require marignal density but instead the divergence.
+Although DSM is easier to implement, when the given [domain of interest](https://arxiv.org/abs/2202.02763) or
+when the marginal density [doesn't have closed form](https://openreview.net/pdf?id=nioAdKCEdXB) ISM is used.
+
+**Important** you need to derive a **different DSM object** for each SDE since
+their marginal density is different. You first need to obtain the $p_{0t}(\mathbf{X}_t\mid \mathbf{X}_0$, then
+find the equation for $\nabla \log p_{0t}(\mathbf{X}_t\mid \mathbf{X}_0$.
 
 However, there are other training objectives with their different trade-offs (SSM, EDM, etc.). Highly recommend to checkout
 [A Variational Perspective on Diffusion-based Generative Models and Score Matching](https://arxiv.org/abs/2106.02808)
