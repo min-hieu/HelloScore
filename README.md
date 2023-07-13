@@ -267,7 +267,7 @@ Once we train the noise prediction network $\boldsymbol{\epsilon}\_\theta$, we c
   <img width="480" alt="image" src="https://github.com/min-hieu/HelloScore/assets/37788686/0722ab08-13cf-4247-8d31-0037875cd71b">
 </p>
 
-(DDIM)[https://arxiv.org/abs/2010.02502] proposed a way to speed up the sampling using the same pre-trained DDPM. The reverse step of DDIM is below:
+[DDIM](https://arxiv.org/abs/2010.02502) proposed a way to speed up the sampling using the same pre-trained DDPM. The reverse step of DDIM is below:
 
 <p align="center">
   <img width="784" alt="image" src="https://github.com/min-hieu/HelloScore/assets/37788686/dad1fb63-9f22-48e6-b4d6-0fabd7b33873">
