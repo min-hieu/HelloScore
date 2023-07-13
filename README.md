@@ -26,7 +26,8 @@
   - [Task 1.3](#3-sampling)
   - [Task 1.4](#4-evaluation)
 - [Task 2](#task-2-image-diffusion)
-- [Task 3](#task-3-downstream-tasks-of-ddpm)
+- [Task 3](#task-3-classifier-free-guidance)
+- [Task 4](#task-4-downstream-tasks-of-ddpm)
 
 </details>
 
@@ -49,9 +50,7 @@ pip install -r requirements.txt
 │   ├── network.py                <--- Noise prediction network
 │   ├── network.py                <--- Noise prediction network
 │   ├── scheduler.py              <--- (TODO) Define variance schedulers
-│   ├── inpainting.ipynb          <--- (TODO) Implement image inpainting code
-│   ├── classifier_guidance.ipynb <--- (TODO) Implement classifier guidance sampling code
-│   └── cfg.ipynb                 <--- (TODO) Implement classifier-free guidance sampling code
+│   └── inpainting.ipynb          <--- (TODO) Implement image inpainting code
 └── sde_todo        (Task 1)
     ├── HelloScore.ipynb          <--- main code
     ├── dataset.py                <--- Define dataset (Swiss-roll, moon, gaussians, etc.)
@@ -295,16 +294,26 @@ python measure_fid.py /path/to/sampled/image/directory
 _**Success condition**_: Achieve FID score lower than `20`.
 
 
-## Task 3: Downstream tasks of DDPM
+## Task 3: Classifier-Free Guidance
 
-Now, we will explore how powerful DDPM is in various downstream tasks:
+Now, we will implement a classifier-free guidance diffusion model. It trains an unconditional diffusion model and a conditional diffusion model jointly by randomly dropping out a conditional term. The algorithm is below:
 
-1. Image inpainting ([Repaint](https://arxiv.org/abs/2201.09865))
-2. Classifier guidance sampling ([ADM](https://arxiv.org/abs/2105.05233))
-3. Classifier-free guidance sampling ([CFG](https://arxiv.org/abs/2207.12598))
+<p align="center">
+  <img width="866" alt="image" src="https://github.com/min-hieu/HelloScore/assets/37788686/2da39f56-afaa-4831-a4c9-11d1f2f36e3c">
+</p>
 
-### TODO
-Fill in missing parts in jupyter notebooks, `inpainting.ipynb`, `classifier_guidance.ipynb` and `cfg.ipynb`. 
+You need to train another diffusion model for classifier-free guidance by slightly modifying the network architecture so that it can take class labels as input. The network design is your choice. Our implementation used `nn.Embedding` for class label embeddings and simply add class label embeddings to time embeddings. We set condition term dropout rate 0.1 in training and `guidance_scale` 7.5.
+
+Note that the provided code considers null class label as 0.
+
+For more details, refer to the [paper](https://arxiv.org/abs/2207.12598).
+
+
+## Task 4: Downstream Tasks of DDPM
+
+DDPMs have zero-shot capabilities handling various downstream tasks beyond unconditional generation. Amog them, we will focus on image inpainting only.
+
+Fill in missing parts in jupyter notebooks, `inpainting.ipynb`.
 Report FID scores with 500 result images and the same validation set used in Task 2.
 
 #### [Optional] Improving image inpainting by MCG
