@@ -259,7 +259,7 @@ Once we train the noise prediction network $\boldsymbol{\epsilon}\_\theta$, we c
 
 ### TODO
 
-We will generate 64x64 animal images using DDPM with AFHQ dataset. We provide skeleton code in wihch you need to fill in missing parts.
+We will generate $64\times64$ animal images using DDPM with AFHQ dataset. We provide skeleton code in wihch you need to fill in missing parts.
 You need to construct a noise prediction network according to the provided network diagram and implement the DDPM variance scheduler.
 After filling in the missing parts, you can train a model by `python train.py` and generate & save images by
 
