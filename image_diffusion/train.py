@@ -1,21 +1,26 @@
 import argparse
+import json
+from datetime import datetime
 from pathlib import Path
 
 import matplotlib
 import matplotlib.pyplot as plt
 import torch
-from dataset import AFHQDataModule, CIFAR100DataModule, CIFAR10DataModule, CelebADataModule, get_data_iterator, tensor_to_pil_image
-from jutils import sysutil
-from model import Diffusion, VarianceScheduler
+from dataset import AFHQDataModule, get_data_iterator, tensor_to_pil_image
+from dotmap import DotMap
+from model import DiffusionModule
 from network import UNet
 from pytorch_lightning import seed_everything
-from scheduler import DDIMScheduler
+from scheduler import DDIMScheduler, DDPMScheduler
 from torchvision.transforms.functional import to_pil_image
 from tqdm import tqdm
-from dotmap import DotMap
-import json
 
 matplotlib.use("Agg")
+
+
+def get_current_time():
+    now = datetime.now().strftime("%m-%d-%H%M%S")
+    return now
 
 
 def main(args):
@@ -23,11 +28,12 @@ def main(args):
     config = DotMap()
     config.update(vars(args))
     config.device = f"cuda:{args.gpu}"
-    config.num_diffusion_train_timesteps = 1000
-    config.seed = 63
 
-    now = sysutil.get_current_time()
-    save_dir = Path(f"results/{config.dataset}-diffusion-{now}")
+    now = get_current_time()
+    if args.use_cfg:
+        save_dir = Path(f"results/cfg_diffusion-{now}")
+    else:
+        save_dir = Path(f"results/diffusion-{now}")
     save_dir.mkdir(exist_ok=True)
     print(f"save_dir: {save_dir}")
 
@@ -37,50 +43,48 @@ def main(args):
         json.dump(config, f, indent=2)
     """######"""
 
-    if config.dataset == "cifar10":
-        ds_module = CIFAR10DataModule("./data", batch_size=config.batch_size, num_workers=4)
-        image_resolution = 32
-    elif config.dataset == "cifar100":
-        ds_module = CIFAR100DataModule("./data", batch_size=config.batch_size, num_workers=4)
-        image_resolution = 128
-    elif config.dataset == "celeba":
-        ds_module = CelebADataModule("./data", batch_size=config.batch_size, num_workers=4)
-        image_resolution = 64
-    elif config.dataset == "afhq":
-        ds_module = AFHQDataModule("./data", batch_size=config.batch_size, num_workers=4, max_num_images_per_cat=config.max_num_images_per_cat)
-        image_resolution = 64
-    else:
-        raise ValueError(f"{config.dataset} is an invalid dataset name.")
+    image_resolution = 64
+    ds_module = AFHQDataModule(
+        "./data",
+        batch_size=config.batch_size,
+        num_workers=4,
+        max_num_images_per_cat=config.max_num_images_per_cat,
+        image_resolution=image_resolution
+    )
 
     train_dl = ds_module.train_dataloader()
     train_it = get_data_iterator(train_dl)
 
     var_scheduler = DDIMScheduler(
-        config.num_diffusion_train_timesteps, beta_1=1e-4, beta_T=0.02, mode="linear"
+        config.num_diffusion_train_timesteps,
+        beta_1=config.beta_1,
+        beta_T=config.beta_T,
+        mode="linear",
     )
-    var_scheduler.set_timesteps(20)
-    # var_scheduler = VarianceScheduler(num_timesteps)
+    if isinstance(var_scheduler, DDIMScheduler):
+        var_scheduler.set_timesteps(20)  # 20 steps are enough in the case of DDIM.
 
-    net = UNet(
+    network = UNet(
         T=config.num_diffusion_train_timesteps,
+        image_resolution=image_resolution,
         ch=128,
         ch_mult=[1, 2, 2, 2],
         attn=[1],
         num_res_blocks=4,
-        dropout=0.1, 
-        use_cfg=args.use_cfg, 
-        cfg_dropout=args.cfg_dropout, 
-        num_classes=getattr(ds_module, "num_classes", None)
+        dropout=0.1,
+        use_cfg=args.use_cfg,
+        cfg_dropout=args.cfg_dropout,
+        num_classes=getattr(ds_module, "num_classes", None),
     )
 
-    ddpm = Diffusion(net, var_scheduler)
+    ddpm = DiffusionModule(network, var_scheduler)
     ddpm = ddpm.to(config.device)
 
-    optimizer = torch.optim.Adam(net.parameters(), lr=2e-4)
+    optimizer = torch.optim.Adam(ddpm.network.parameters(), lr=2e-4)
     scheduler = torch.optim.lr_scheduler.LambdaLR(
         optimizer, lr_lambda=lambda t: min((t + 1) / config.warmup_steps, 1.0)
     )
-    
+
     step = 0
     losses = []
     with tqdm(initial=step, total=config.train_num_steps) as pbar:
@@ -91,12 +95,12 @@ def main(args):
                 plt.savefig(f"{save_dir}/loss.png")
                 plt.close()
 
-                samples = ddpm.sample(4, return_traj=False, image_resolution=image_resolution)
+                samples = ddpm.sample(4, return_traj=False)
                 pil_images = tensor_to_pil_image(samples)
                 for i, img in enumerate(pil_images):
                     img.save(save_dir / f"step={step}-{i}.png")
-                
-                torch.save(ddpm.state_dict(), f"{save_dir}/last.ckpt")
+
+                ddpm.save(f"{save_dir}/last.ckpt")
                 ddpm.train()
 
             img, label = next(train_it)
@@ -114,18 +118,36 @@ def main(args):
             pbar.update(1)
 
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--gpu", type=int, default=0)
     parser.add_argument("--batch_size", type=int, default=32)
-    parser.add_argument("--train_num_steps", type=int, default=100000)
+    parser.add_argument(
+        "--train_num_steps",
+        type=int,
+        default=100000,
+        help="the number of model training steps.",
+    )
     parser.add_argument("--warmup_steps", type=int, default=200)
-    parser.add_argument("--log_interval", type=int, default=50)
-    parser.add_argument("--dataset", type=str, choices=["cifar10", "cifar100", "celeba", "afhq"], default="cifar10")
-    parser.add_argument("--max_num_images_per_cat", type=int, default=1000, help="max number of images per category for AFHQ dataset")
-    parser.add_argument("--use_cfg", action="store_true")
-    parser.add_argument("--cfg_dropout", type=float, default=0.1, help="random dropout rate of making class label null")
+    parser.add_argument("--log_interval", type=int, default=200)
+    parser.add_argument(
+        "--max_num_images_per_cat",
+        type=int,
+        default=1000,
+        help="max number of images per category for AFHQ dataset",
+    )
+    parser.add_argument(
+        "--num_diffusion_train_timesteps",
+        type=int,
+        default=1000,
+        help="diffusion Markov chain num steps",
+    )
+    parser.add_argument("--beta_1", type=float, default=1e-4)
+    parser.add_argument("--beta_T", type=float, default=0.02)
+    parser.add_argument("--seed", type=int, default=63)
+    parser.add_argument("--image_resolution", type=int, default=64)
 
+    parser.add_argument("--use_cfg", action="store_true")
+    parser.add_argument("--cfg_dropout", type=float, default=0.1)
     args = parser.parse_args()
     main(args)

@@ -6,8 +6,9 @@ from module import TimeEmbedding, ResBlock, DownSample, UpSample, Swish
 
 
 class UNet(nn.Module):
-    def __init__(self, T=1000, ch=128, ch_mult=[1,2,2,2], attn=[1], num_res_blocks=4, dropout=0.1, use_cfg=False, cfg_dropout=0.1, num_classes=None):
+    def __init__(self, T=1000, image_resolution=64, ch=128, ch_mult=[1,2,2,2], attn=[1], num_res_blocks=4, dropout=0.1, use_cfg=False, cfg_dropout=0.1, num_classes=None):
         super().__init__()
+        self.image_resolution = image_resolution
         assert all([i < len(ch_mult) for i in attn]), 'attn index out of bound'
         tdim = ch * 4
         # self.time_embedding = TimeEmbedding(T, ch, tdim)

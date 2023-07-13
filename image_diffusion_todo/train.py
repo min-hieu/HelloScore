@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import torch
 from dataset import AFHQDataModule, get_data_iterator, tensor_to_pil_image
 from dotmap import DotMap
-from model import DiffusionModule
+from ddpm import DiffusionModule
 from network import UNet
 from pytorch_lightning import seed_everything
 from scheduler import DDIMScheduler, DDPMScheduler
@@ -30,7 +30,7 @@ def main(args):
     config.device = f"cuda:{args.gpu}"
 
     now = get_current_time()
-    save_dir = Path(f"results/{config.dataset}-diffusion-{now}")
+    save_dir = Path(f"results/diffusion-{now}")
     save_dir.mkdir(exist_ok=True)
     print(f"save_dir: {save_dir}")
 
@@ -40,13 +40,14 @@ def main(args):
         json.dump(config, f, indent=2)
     """######"""
 
+    image_resolution = 64
     ds_module = AFHQDataModule(
         "./data",
         batch_size=config.batch_size,
         num_workers=4,
         max_num_images_per_cat=config.max_num_images_per_cat,
+        image_resolution=image_resolution
     )
-    image_resolution = 64
 
     train_dl = ds_module.train_dataloader()
     train_it = get_data_iterator(train_dl)
@@ -129,7 +130,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--max_num_images_per_cat",
         type=int,
-        default=1000,
+        default=-1,
         help="max number of images per category for AFHQ dataset",
     )
     parser.add_argument(

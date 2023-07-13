@@ -3,7 +3,7 @@ import argparse
 import numpy as np
 import torch
 from dataset import tensor_to_pil_image
-from model import DiffusionModule
+from ddpm import DiffusionModule
 from network import UNet
 from scheduler import DDIMScheduler, DDPMScheduler
 from pathlib import Path
@@ -22,12 +22,12 @@ def main(args):
 
     scheduler = ddpm.var_scheduler
 
-    total_num_samples = 1500
+    total_num_samples = 500
     num_batches = int(np.ceil(total_num_samples / args.batch_size))
 
     for i in range(num_batches):
         sidx = i * args.batch_size
-        eidx = min(sidx + args.batch_size, total_num_samples - 1)
+        eidx = min(sidx + args.batch_size, total_num_samples)
         samples = ddpm.sample(eidx - sidx)
         pil_images = tensor_to_pil_image(samples)
 

@@ -49,13 +49,14 @@ def get_data_iterator(iterable):
 
 class AFHQDataset(torch.utils.data.Dataset):
     def __init__(
-        self, root: str, split: str, transform=None, max_num_images_per_cat=1000
+        self, root: str, split: str, transform=None, max_num_images_per_cat=-1, label_offset=1
     ):
         super().__init__()
         self.root = root
         self.split = split
         self.transform = transform
         self.max_num_images_per_cat = max_num_images_per_cat
+        self.label_offset = label_offset
 
         categories = os.listdir(os.path.join(root, split))
         self.num_classes = len(categories)
@@ -64,9 +65,11 @@ class AFHQDataset(torch.utils.data.Dataset):
         for idx, cat in enumerate(sorted(categories)):
             category_dir = os.path.join(root, split, cat)
             cat_fnames = listdir(category_dir)
-            cat_fnames = sorted(cat_fnames)[: self.max_num_images_per_cat]
+            cat_fnames = sorted(cat_fnames)
+            if self.max_num_images_per_cat > 0:
+                cat_fnames = cat_fnames[: self.max_num_images_per_cat]
             fnames += cat_fnames
-            labels += [idx + 1] * len(cat_fnames)  # label 0 is for null class.
+            labels += [idx + label_offset] * len(cat_fnames)  # label 0 is for null class.
 
         self.fnames = fnames
         self.labels = labels
@@ -74,7 +77,7 @@ class AFHQDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         img = Image.open(self.fnames[idx]).convert("RGB")
         label = self.labels[idx]
-        assert label > 0
+        assert label >= self.label_offset
         if self.transform is not None:
             img = self.transform(img)
 
@@ -92,6 +95,7 @@ class AFHQDataModule(object):
         num_workers: int = 4,
         max_num_images_per_cat: int = 1000,
         image_resolution: int = 64,
+        label_offset=1,
     ):
         self.root = root
         self.batch_size = batch_size
@@ -99,6 +103,7 @@ class AFHQDataModule(object):
         self.afhq_root = os.path.join(root, "afhq")
         self.max_num_images_per_cat = max_num_images_per_cat
         self.image_resolution = image_resolution
+        self.label_offset = label_offset
 
         if not os.path.exists(self.afhq_root):
             print(f"{self.afhq_root} is empty. Downloading AFHQ dataset...")
@@ -119,12 +124,14 @@ class AFHQDataModule(object):
             "train",
             self.transform,
             max_num_images_per_cat=self.max_num_images_per_cat,
+            label_offset=self.label_offset
         )
         self.val_ds = AFHQDataset(
             self.afhq_root,
             "val",
             self.transform,
             max_num_images_per_cat=self.max_num_images_per_cat,
+            label_offset=self.label_offset,
         )
 
         self.num_classes = self.train_ds.num_classes
