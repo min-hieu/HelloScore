@@ -159,7 +159,7 @@ You should also obtain the following graphs for VPSDE and VESDE respectively
 #### 2. Training
 The typical training objective of diffusion model uses **D**enoising **S**core **M**atching loss:
 
-$$f_{\theta^*} = \textrm{ argmin }  \mathbb{E} [||f_\theta(\mathbf{X}s) - \nabla p_{s0}(\mathbf{X}_s\mid \mathbf{X}_0)||^2] $$
+$$f_{\theta^*} = \textrm{ argmin }  \mathbb{E} [||f_\theta(\mathbf{X}s) - \nabla_{\mathbf{X}s} p_{s0}(\mathbf{X}s\mid \mathbf{X}_0)||^2] $$
 
 Where $f$ is the score prediction network with parameter $\theta^*$.
 Another popular training objective is **I**mplicit **S**core **M**atching loss which can be derived from DSM.
@@ -167,9 +167,10 @@ One main different between ISM and DSM is that ISM doesn't require marignal dens
 Although DSM is easier to implement, when the given [domain of interest](https://arxiv.org/abs/2202.02763) or
 when the marginal density [doesn't have closed form](https://openreview.net/pdf?id=nioAdKCEdXB) ISM is used.
 
-**Important** you need to derive a **different DSM object** for each SDE since
-their marginal density is different. You first need to obtain the $p_{0t}(\mathbf{X}_t\mid \mathbf{X}_0$, then
-find the equation for $\nabla \log p_{0t}(\mathbf{X}_t\mid \mathbf{X}_0$.
+**(Important)** you need to derive a **different DSM objective** for each SDE since
+their marginal density is different. You first need to obtain the closed form for $p_{0t}$, then you can find the equation for $\nabla \log p_{0t}$.
+For $p_{0t}$, you can refer to the appendix of the SDE paper. 
+
 
 However, there are other training objectives with their different trade-offs (SSM, EDM, etc.). Highly recommend to checkout
 [A Variational Perspective on Diffusion-based Generative Models and Score Matching](https://arxiv.org/abs/2106.02808)
