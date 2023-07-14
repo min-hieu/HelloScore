@@ -278,7 +278,7 @@ Please refer to DDIM paper for more details.
 
 ### TODO
 
-In this task, we will generate $64\times64$ animal images using DDPM with AFHQ dataset. We provide most of code only except for variance scheduling code. You need to implement DDPM scheduler and DDIM scheduler in `scheduler.py`. After implementing the schedulers, train a model by `python train.py` and sample & save images by
+In this task, we will generate $64\times64$ animal images using DDPM with AFHQ dataset. We provide most of code only except for variance scheduling code. You need to implement DDPM scheduler and DDIM scheduler in `scheduler.py`. After implementing the schedulers, train a model by `python train.py`. It will sample images and save a checkpoint every `args.log_interval`. After training a model, sample & save images by
 ```
 python sampling.py --ckpt_path ${CKPT_PATH} --save_dir ${SAVE_DIR_PATH}
 ```
@@ -292,7 +292,7 @@ As an evaluation, measure FID score using the pre-trained classifier network we 
 python dataset.py # to constuct eval directory.
 python fid/measure_fid.py /path/to/eval/dir /path/to/sample/dir
 ```
-_**Success condition**_: Achieve FID score lower than `6`.
+_**Success condition**_: Achieve FID score lower than `30`.
 
 
 ## Task 3: Classifier-Free Guidance
