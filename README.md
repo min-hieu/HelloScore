@@ -289,9 +289,10 @@ We recommend starting the training as soon as possible since the training would 
 As an evaluation, measure FID score using the pre-trained classifier network we provide:
 
 ```
-python measure_fid.py /path/to/sampled/image/directory
+python dataset.py # to constuct eval directory.
+python fid/measure_fid.py /path/to/eval/dir /path/to/sample/dir
 ```
-_**Success condition**_: Achieve FID score lower than `20`.
+_**Success condition**_: Achieve FID score lower than `6`.
 
 
 ## Task 3: Classifier-Free Guidance
