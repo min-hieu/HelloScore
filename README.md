@@ -50,7 +50,10 @@ pip install -r requirements.txt
 │   ├── network.py                <--- Noise prediction network
 │   ├── network.py                <--- Noise prediction network
 │   ├── scheduler.py              <--- (TODO) Define variance schedulers
-│   └── inpainting.ipynb          <--- (TODO) Implement image inpainting code
+│   ├── inpainting.ipynb          <--- (TODO) Implement image inpainting code
+│   └── fid
+│       ├── measure_fid.py        <--- script measuring FID score  
+│       └── afhq_inception.ckpt   <--- pre-trained classifier for FID 
 └── sde_todo        (Task 1)
     ├── HelloScore.ipynb          <--- main code
     ├── dataset.py                <--- Define dataset (Swiss-roll, moon, gaussians, etc.)
