@@ -114,6 +114,7 @@ def main(args):
             step += 1
             pbar.update(1)
 
+    print(f"last.ckpt is saved at {save_dir}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

@@ -20,7 +20,8 @@ def main(args):
     ddpm.eval()
     ddpm = ddpm.to(device)
 
-    scheduler = ddpm.var_scheduler
+    if isinstance(ddpm.var_scheduler, DDIMScheduler):
+        ddpm.var_scheduler.set_timesteps(20)
 
     total_num_samples = 500
     num_batches = int(np.ceil(total_num_samples / args.batch_size))

@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from image_diffusion.scheduler import BaseScheduler
+from scheduler import BaseScheduler
 
 
 class DiffusionModule(nn.Module):
@@ -26,6 +26,10 @@ class DiffusionModule(nn.Module):
     def device(self):
         return next(self.network.parameters()).device
 
+    @property
+    def image_resolution(self):
+        return self.network.image_resolution
+
     @torch.no_grad()
     def sample(
         self,
@@ -35,7 +39,7 @@ class DiffusionModule(nn.Module):
         """
         Sample x_0 from a learned diffusion model.
         """
-        x_T = torch.randn([batch_size, 3, self.network.image_resolution, self.network.image_resolution]).to(
+        x_T = torch.randn([batch_size, 3, self.image_resolution, self.image_resolution]).to(
             self.device
         )
 
