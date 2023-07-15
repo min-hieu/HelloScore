@@ -38,17 +38,17 @@ class VarianceScheduler(nn.Module):
         return torch.from_numpy(ts)
     
 
-class Diffusion(nn.Module):
+class DiffusionModule(nn.Module):
     def __init__(self, network, var_scheduler, **kwargs):
         super().__init__()
         self.network = network
         self.var_scheduler = var_scheduler
 
-    def get_loss(self, x0, noise=None):
+    def get_loss(self, x0, class_label=None, noise=None):
         B = x0.shape[0]
         timestep = self.var_scheduler.uniform_sample_t(B, self.device)
         x_noisy, noise = self.var_scheduler.add_noise(x0, timestep)
-        noise_pred = self.network(x_noisy, timestep=timestep)
+        noise_pred = self.network(x_noisy, timestep=timestep, class_label=class_label)
 
         loss = F.mse_loss(noise_pred.flatten(), noise.flatten(), reduction="mean")
         return loss
@@ -57,14 +57,35 @@ class Diffusion(nn.Module):
     def device(self):
         return next(self.network.parameters()).device
 
+    @property
+    def image_resolution(self):
+        return self.network.image_resolution
+
     @torch.no_grad()
-    def sample(self, batch_size, return_traj=False, image_resolution=32):
-        x_T = torch.randn([batch_size, 3, image_resolution, image_resolution]).to(self.device)
+    def sample(self, batch_size, return_traj=False, 
+            class_label: Optional[torch.Tensor] = None, guidance_scale: Optional[float] = 1.0):
+        x_T = torch.randn([batch_size, 3, self.image_resolution, self.image_resolution]).to(self.device)
+
+        do_classifier_free_guidance = guidance_scale > 1.0
+
+        if do_classifier_free_guidance:
+            assert class_label is not None
+            assert len(class_label) == batch_size, f"len(class_label) != batch_size. {len(class_label)} != {batch_size}"
+            class_label = class_label.to(self.device)
+            null_class_label = torch.zeros_like(class_label)
+            class_label_input = torch.cat([null_class_label, class_label])
 
         traj = [x_T]
         for t in self.var_scheduler.timesteps:
             x_t = traj[-1]
-            noise_pred = self.network(x_t, timestep=t.to(self.device))
+            if do_classifier_free_guidance:
+                x_t_input = torch.cat([x_t]*2)
+                noise_pred = self.network(x_t_input, timestep=t.to(self.device), class_label=class_label_input)
+                noise_pred_uncond, noise_pred_cond = noise_pred.chunk(2)
+                noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_cond - noise_pred_uncond)
+            else:
+                noise_pred = self.network(x_t, timestep=t.to(self.device))
+
             x_t_prev = self.var_scheduler.step(x_t, t, noise_pred)
 
             traj[-1] = traj[-1].cpu()
@@ -76,6 +97,25 @@ class Diffusion(nn.Module):
         else:
             return traj[-1]
 
+    def save(self, file_path):
+        hparams = {
+                "network": self.network,
+                "var_scheduler": self.var_scheduler,
+                } 
+        state_dict = self.state_dict()
+
+        dic = {"hparams": hparams, "state_dict": state_dict}
+        torch.save(dic, file_path)
+
+    def load(self, file_path):
+        dic = torch.load(file_path, map_location="cpu")
+        hparams = dic["hparams"]
+        state_dict = dic["state_dict"]
+
+        self.network = hparams["network"]
+        self.var_scheduler = hparams["var_scheduler"]
+
+        self.load_state_dict(state_dict)
 
     # @torch.no_grad()
     # def sample(self, batch_size=4, return_traj=False):

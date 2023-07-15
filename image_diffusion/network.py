@@ -1,16 +1,26 @@
 import torch
 import torch.nn as nn
+import numpy as np
 from torch.nn import init
 from module import TimeEmbedding, ResBlock, DownSample, UpSample, Swish
 
 
 class UNet(nn.Module):
-    def __init__(self, T, ch, ch_mult, attn, num_res_blocks, dropout):
+    def __init__(self, T=1000, image_resolution=64, ch=128, ch_mult=[1,2,2,2], attn=[1], num_res_blocks=4, dropout=0.1, use_cfg=False, cfg_dropout=0.1, num_classes=None):
         super().__init__()
+        self.image_resolution = image_resolution
         assert all([i < len(ch_mult) for i in attn]), 'attn index out of bound'
         tdim = ch * 4
         # self.time_embedding = TimeEmbedding(T, ch, tdim)
         self.time_embedding = TimeEmbedding(tdim)
+
+        # classifier-free guidance
+        self.use_cfg = use_cfg
+        self.cfg_dropout = cfg_dropout
+        if use_cfg:
+            assert num_classes is not None
+            cdim = tdim
+            self.class_embedding = nn.Embedding(num_classes+1, cdim)
 
         self.head = nn.Conv2d(3, ch, kernel_size=3, stride=1, padding=1)
         self.downblocks = nn.ModuleList()
@@ -58,9 +68,19 @@ class UNet(nn.Module):
         init.xavier_uniform_(self.tail[-1].weight, gain=1e-5)
         init.zeros_(self.tail[-1].bias)
 
-    def forward(self, x, timestep):
+    def forward(self, x, timestep, class_label=None):
         # Timestep embedding
         temb = self.time_embedding(timestep)
+
+        if self.use_cfg and class_label is not None:
+            if self.training:
+                assert not torch.any(class_label == 0) # 0 for null.
+                null_label = torch.zeros_like(class_label)
+                rand_dropout_mask = torch.rand_like(class_label.float()) < self.cfg_dropout
+                class_label = torch.where(rand_dropout_mask, null_label, class_label)
+            cemb = self.class_embedding(class_label)
+            temb = temb + cemb
+
         # Downsampling
         h = self.head(x)
         hs = [h]

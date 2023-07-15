@@ -6,7 +6,9 @@ import torch.nn as nn
 
 
 class BaseScheduler(nn.Module):
-    def __init__(self, num_train_timesteps, beta_1, beta_T, mode="linear"):
+    def __init__(
+        self, num_train_timesteps: int, beta_1: float, beta_T: float, mode="linear"
+    ):
         super().__init__()
         self.num_train_timesteps = num_train_timesteps
         self.num_inference_timesteps = num_train_timesteps
@@ -33,6 +35,9 @@ class BaseScheduler(nn.Module):
     def uniform_sample_t(
         self, batch_size, device: Optional[torch.device] = None
     ) -> torch.IntTensor:
+        """
+        Uniformly sample timesteps.
+        """
         ts = np.random.choice(np.arange(self.num_train_timesteps), batch_size)
         ts = torch.from_numpy(ts)
         if device is not None:
@@ -42,14 +47,20 @@ class BaseScheduler(nn.Module):
 
 class DDPMScheduler(BaseScheduler):
     def __init__(
-        self, num_train_timesteps, beta_1, beta_T, mode="linear", sigma_type="small"
+        self,
+        num_train_timesteps: int,
+        beta_1: float,
+        beta_T: float,
+        mode="linear",
+        sigma_type="small",
     ):
         super().__init__(num_train_timesteps, beta_1, beta_T, mode)
 
         self.sigma_type = sigma_type
         if sigma_type == "small":
+            # print(self.alphas_cumprod.shape, self.alphas_cumprod[-1:].shape)
             alphas_cumprod_t_prev = torch.cat(
-                [torch.tensor(1.0), self.alphas_cumprod[-1:]]
+                    [torch.tensor([1.0]), self.alphas_cumprod[:-1]]
             )
             sigmas = (
                 (1 - alphas_cumprod_t_prev) / (1 - self.alphas_cumprod) * self.betas
@@ -60,6 +71,16 @@ class DDPMScheduler(BaseScheduler):
         self.register_buffer("sigmas", sigmas)
 
     def step(self, sample: torch.Tensor, timestep: int, noise_pred: torch.Tensor):
+        """
+        One step denoising function: x_t -> x_{t-1}.
+
+        Input:
+            sample (`torch.Tensor [B,C,H,W]`): samples at arbitrary timestep t.
+            timestep (`int`): current timestep in a reverse process.
+            noise_pred (`torch.Tensor [B,C,H,W]`): predicted noise from a learned model.
+        Ouptut:
+            sample_prev (`torch.Tensor [B,C,H,W]`): one step denoised sample. (= x_{t-1})
+        """
         alpha_t = self.alphas[timestep]
         beta_t = self.betas[timestep]
         alpha_prod_t = self.alphas_cumprod[timestep]
@@ -75,18 +96,20 @@ class DDPMScheduler(BaseScheduler):
 
     def add_noise(
         self,
-        original_sample,
+        original_sample: torch.Tensor,
         timesteps: torch.IntTensor,
         noise: Optional[torch.Tensor] = None,
     ):
         """
+        Forward function in a forward Markov chain, i.e., q(x_t | x_0).
+
         Input:
-            sample: [B,C,H,W]
-            timesteps: [B]
-            noise: [B,C,H,W]
+            sample (`torch.Tensor [B,C,H,W]`): samples from a real data distribution q(x_0).
+            timesteps: (`torch.IntTensor [B]`)
+            noise: (`torch.Tensor [B,C,H,W]`, optional): if None, randomly sample Gaussian noise in the function.
         Output:
-            x_noisy: [B,C,H,W]
-            noise: [B,C,H,W]
+            x_noisy: (`torch.Tensor [B,C,H,W]`): noisy samples
+            noise: (`torch.Tensor [B,C,H,W]`): injected noise.
         """
         device = original_sample.device
 
@@ -153,12 +176,21 @@ class DDIMScheduler(BaseScheduler):
             else self.alpha_prod_0
         )
 
-        sigma_t_square = ((1 - alpha_prod_t_prev) / (1 - alpha_prod_t) * (1 - alpha_prod_t / alpha_prod_t_prev) * eta)
+        sigma_t_square = (
+            (1 - alpha_prod_t_prev)
+            / (1 - alpha_prod_t)
+            * (1 - alpha_prod_t / alpha_prod_t_prev)
+            * eta
+        )
         sigma_t = sigma_t_square ** (0.5)
 
-        pred_original_sample = (sample - torch.sqrt(1 - alpha_prod_t) * noise_pred) / torch.sqrt(alpha_prod_t)
+        pred_original_sample = (
+            sample - torch.sqrt(1 - alpha_prod_t) * noise_pred
+        ) / torch.sqrt(alpha_prod_t)
 
-        direction_to_sample = torch.sqrt(1 - alpha_prod_t_prev - sigma_t_square) * noise_pred
+        direction_to_sample = (
+            torch.sqrt(1 - alpha_prod_t_prev - sigma_t_square) * noise_pred
+        )
 
         z = torch.randn_like(sample)
         random_noise = sigma_t * z
