@@ -52,8 +52,8 @@ pip install -r requirements.txt
 │   ├── scheduler.py              <--- (TODO) Define variance schedulers
 │   ├── inpainting.ipynb          <--- (TODO) Implement image inpainting code
 │   └── fid
-│       ├── measure_fid.py        <--- script measuring FID score  
-│       └── afhq_inception.ckpt   <--- pre-trained classifier for FID 
+│       ├── measure_fid.py        <--- script measuring FID score
+│       └── afhq_inception.ckpt   <--- pre-trained classifier for FID
 └── sde_todo        (Task 1)
     ├── HelloScore.ipynb          <--- main code
     ├── dataset.py                <--- Define dataset (Swiss-roll, moon, gaussians, etc.)
@@ -177,7 +177,7 @@ when the marginal density [doesn't have closed form](https://openreview.net/pdf?
 
 **(Important)** you need to derive a **different DSM objective** for each SDE since
 their marginal density is different. You first need to obtain the closed form for $p_{0t}$, then you can find the equation for $\nabla \log p_{0t}$.
-For $p_{0t}$, you can refer to the appendix of the SDE paper. 
+For $p_{0t}$, you can refer to the appendix of the SDE paper.
 
 
 However, there are other training objectives with their different trade-offs (SSM, EDM, etc.). Highly recommend to checkout
@@ -342,4 +342,3 @@ Compare image inpainting results between MCG and the baseline.
 - [[lecture](https://youtube.com/playlist?list=PLCf12vHS8ONRpLNVGYBa_UbqWB_SeLsY2)] Charlie's Playlist on Diffusion Processes
 - [[slide](./assets/summary_of_DDPM_and_DDIM.pdf)] Juil's presentation slide of DDIM
 - [[slide](./assets/sb_likelihood_training.pdf)] Charlie's presentation of Schrödinger Bridge.
-
