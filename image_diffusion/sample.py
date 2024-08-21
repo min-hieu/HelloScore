@@ -27,7 +27,14 @@ def main(args):
     for i in range(num_batches):
         sidx = i * args.batch_size
         eidx = min(sidx + args.batch_size, total_num_samples)
+        ### NO CFG sampling ###
         samples = ddpm.sample(eidx - sidx)
+        
+        ### CFG sampling ###
+        # class_label =  torch.randint(0, 3, (eidx-sidx,)).to(device)
+        # samples = ddpm.sample(eidx - sidx, class_label=class_label, guidance_scale=7.5)
+        ####################
+        
         pil_images = tensor_to_pil_image(samples)
 
         for j, img in zip(range(sidx, eidx), pil_images):
